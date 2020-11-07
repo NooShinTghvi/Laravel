@@ -16,7 +16,7 @@ class ContactFactory extends Factory
      */
     protected $model = Contact::class;
 
-    private $permitted_chars = '0123456789012345678901234567890123456789';
+    private $permittedChars = '0123456789012345678901234567890123456789';
     private $users;
     private $numberOfUsers;
 
@@ -39,7 +39,7 @@ class ContactFactory extends Factory
         return [
             'first_name' => $this->faker->firstName,
             'last_name' => $this->faker->lastName,
-            'phone' => '09' . substr(str_shuffle($this->permitted_chars), 0, 9),
+            'phone' => '09' . substr(str_shuffle($this->permittedChars), 0, 9),
             'user_id' => $this->users[random_int(1, $this->numberOfUsers - 1)],
         ];
     }
