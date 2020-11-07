@@ -37,7 +37,8 @@ class ContactFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->name,
+            'first_name' => $this->faker->firstName,
+            'last_name' => $this->faker->lastName,
             'phone' => '09' . substr(str_shuffle($this->permitted_chars), 0, 9),
             'user_id' => $this->users[random_int(1, $this->numberOfUsers - 1)],
         ];

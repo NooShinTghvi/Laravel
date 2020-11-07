@@ -10,4 +10,6 @@ class ContactGroup extends Model
     use HasFactory;
 
     protected $table = 'contact_group';
+
+    protected $fillable = ['group_id', 'contact_id'];
 }
