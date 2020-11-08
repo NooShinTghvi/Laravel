@@ -31,7 +31,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'is_admin', 'password', 'remember_token', 'two_factor_recovery_codes', 'two_factor_secret',
+        'is_admin', 'password', 'remember_token', 'two_factor_recovery_codes', 'two_factor_secret', 'created_at', 'updated_at'
     ];
 
     /**

@@ -1,3 +1,10 @@
 <div>
-     Care about people's approval and you will be their prisoner.
+    <div class="row">
+        <div class="col-4">
+            @livewire('group')
+        </div>
+        <div class="col-8">
+            @livewire('contact')
+        </div>
+    </div>
 </div>
