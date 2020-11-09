@@ -1,10 +1,10 @@
 <div>
     <div class="row">
         <div class="col-4">
-            @livewire('group')
+            @livewire('show-all-groups')
         </div>
         <div class="col-8">
-            @livewire('contact')
+            @livewire('show-all-contacts')
         </div>
     </div>
 </div>

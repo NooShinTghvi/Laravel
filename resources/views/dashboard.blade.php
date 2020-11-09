@@ -53,7 +53,7 @@
                                 </div>
                                 <div class="tab-pane fade" id="pills-show-contacts" role="tabpanel"
                                      aria-labelledby="pills-show-contacts-tab">
-                                    @livewire('show-contacts')
+                                    @livewire('contact-tab')
                                 </div>
                             </div>
                         </div>
