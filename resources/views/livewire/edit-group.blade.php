@@ -17,16 +17,18 @@
 <script src="{{asset('js/popper.min.js')}}"></script>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-2">
+        <div class="col-2" style="background-color: #a0aec0">
             <div id="allContactsInGroup">
-                <h3>All contacts in groups</h3>
-                @foreach($contacts as $contact)
-                    <spam id="{{$contact->id}}">{{$contact->first_name}} {{$contact->last_name}}</spam>
-                    <br>
-                @endforeach
+                <h3 style="color: #1d2124">All contacts in groups:</h3>
+                <div class="pt-3">
+                    @foreach($contacts as $contact)
+                        <spam id="{{$contact->id}}">{{$contact->first_name}} {{$contact->last_name}}</spam>
+                        <br>
+                    @endforeach
+                </div>
             </div>
         </div>
-        <div class="col-10">
+        <div class="col-10" style="background-color: #c6c9d6">
             <div class="row">
                 <div class="col-8">
                     <h2>Details</h2>
@@ -75,7 +77,8 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-4">
+                <div class="col-12 pt-5"><h2>Delete</h2></div>
+                <div class="col-12">
                     <form id="myForm" role="form" method="post" action="{{route('group.remove', $group['id'])}}">
                         @csrf
                         <p>R U sure?</p>
@@ -132,7 +135,7 @@
     });
 </script>
 
-{{-- * * * * * * * * * * * AJAX  add to new group ** * * * * * * * * * * --}}
+{{-- * * * * * * * * * * * AJAX  delete from group ** * * * * * * * * * * --}}
 <script>
     $(document).ready(function () {
         $('#confirm_btn3').click(function (e) {

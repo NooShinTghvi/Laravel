@@ -37,7 +37,7 @@ class GroupFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->name . ' group',
+            'name' => $this->faker->firstName . ' group',
             'user_id' => $this->users[random_int(1, $this->numberOfUsers - 1)],
         ];
     }

@@ -49,7 +49,13 @@
                 formData.append("last_name", $('#last_name').val());
                 formData.append("phone", $('#phone').val());
                 let files = $('#image')[0].files;
-                formData.append("image", files[0]);
+                if (files.length === 0) {
+                    console.log('AAA')
+                    // formData.append("image", null);
+                } else {
+                    console.log('BBB')
+                    formData.append("image", files[0]);
+                }
                 $.ajax({
                     url: "{{ route('contact.create') }}",
                     method: 'POST',

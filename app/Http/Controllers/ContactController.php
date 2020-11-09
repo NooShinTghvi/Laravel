@@ -20,8 +20,8 @@ class ContactController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|max:25',
             'last_name' => 'required|max:45',
-            'phone' => 'required|numeric|size:11',
-            'image' => 'nullable|max:1000|image|mimes:jpeg,png,jpg,svg', //todo check
+            'phone' => 'required|digits:11',
+            'image' => 'nullable|image|max:1000',
         ]);
         if ($validator->fails()) {
             return $this->mrResponse('error', $validator->errors()->all());
@@ -32,8 +32,7 @@ class ContactController extends Controller
             'phone' => $request->get('phone'),
             'user_id' => Auth::id()
         ]);
-
-        if ($request->file('image')->isValid()) {
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $this->saveImageInStorage($request, $contact);
         }
 
@@ -74,7 +73,7 @@ class ContactController extends Controller
         $groupController = new GroupController();
         // find groups that contact is part of that
         $contactInGroups = $groupController->findGroupsForSpecificContact($contact);
-        $groups = $groupController->getAll();
+        $groups = $groupController->get();
 
         return view('livewire.edit-contact', [
             'contact' => $contact,
@@ -99,7 +98,7 @@ class ContactController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|max:25',
             'last_name' => 'required|max:45',
-            'phone' => 'required|numeric|size:11',
+            'phone' => 'required|digits:11',
             //'phone' => 'required|digits:11,13|max:10000000000000|min:9999999999',
         ]);
         if ($validator->fails()) {

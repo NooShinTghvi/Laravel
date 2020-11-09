@@ -5,13 +5,13 @@
                 @if(Auth::user()->is_active)
                     <li class="nav-item">
                         <a class="nav-link active" id="pills-create-group-tab" data-toggle="pill"
-                           href="#pills-create-group"
-                           role="tab" aria-controls="pills-create-group" aria-selected="true">Create Group</a>
+                           href="#pills-create-group" role="tab" aria-controls="pills-create-group"
+                           aria-selected="true">Create Group</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="pills-create-contact-tab" data-toggle="pill"
-                           href="#pills-create-contact"
-                           role="tab" aria-controls="pills-create-contact" aria-selected="false">Create Contact</a>
+                           href="#pills-create-contact" role="tab" aria-controls="pills-create-contact"
+                           aria-selected="false">Create Contact</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="pills-show-contacts-tab" data-toggle="pill" href="#pills-show-contacts"
@@ -24,7 +24,11 @@
             @endif
             @if(Auth::user()->is_admin)
                 @if(Auth::user()->is_active)
-                    admin
+                    <li class="nav-item">
+                        <a class="nav-link active" id="pills-admin-tab" data-toggle="pill"
+                           href="#pills-admin" role="tab" aria-controls="pills-admin"
+                           aria-selected="true">Contact</a>
+                    </li>
                 @endif
                 @if(!Auth::user()->is_active)
                     <p>Your access is limited</p>
@@ -57,7 +61,14 @@
                 @endif
                 @if(Auth::user()->is_admin)
                     @if(Auth::user()->is_active)
-                        admin content
+                        <div class="pt-8">
+                            <div class="tab-content" id="pills-tabContent">
+                                <div class="tab-pane fade show active" id="pills-admin" role="tabpanel"
+                                     aria-labelledby="pills-home-tab">
+                                    @livewire('admin')
+                                </div>
+                            </div>
+                        </div>
                     @endif
                 @endif
             </div>

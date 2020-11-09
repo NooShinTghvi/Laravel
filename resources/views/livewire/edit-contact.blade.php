@@ -18,7 +18,7 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-2">
+        <div class="col-2" style="background-color: #a0aec0">
             <div id="contact_sGroup"> {{--contact'sGroup--}}
                 <h3>groups</h3>
                 @foreach($contactInGroups as $group)
@@ -26,7 +26,7 @@
                 @endforeach
             </div>
         </div>
-        <div class="col-10">
+        <div class="col-10" style="background-color: #c6c9d6">
             <div class="row">
                 <div class="col-8">
                     <h2>Details</h2>
@@ -108,9 +108,11 @@
                     <div id="result_success3" style="display:none" class="alert alert-success" role="alert"></div>
                 </div>
             </div>
-            <div class="row pt-5">
-                <div class="col-4">
-                    <form id="myForm" role="form" method="post" action="{{route('contact.remove', $contact['id'])}}">
+            <div class="row">
+                <div class="col-12 pt-5"><h2>Delete</h2></div>
+                <div class="col-12">
+                    <form id="myForm" role="form" method="post"
+                          action="{{route('contact.remove', $contact['id'])}}">
                         @csrf
                         <p>R U sure?</p>
                         <button type="submit" class="btn btn-danger">Submit</button>
@@ -249,7 +251,7 @@
                             $('#result_danger3').hide();
                         $('#result_success3').show();
                         $('#result_success3').html('Done 🥳 😍');
-                        $('#contact_sGroup').append(result.data[0] + '</p>'); {{--contact'sGroup--}}
+                        $('#contact_sGroup').append(result.data[0] + '<br>'); {{--contact'sGroup--}}
                     }
                     console.log(result);
                 },
