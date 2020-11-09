@@ -40,9 +40,14 @@ class ContactController extends Controller
         return $this->mrResponse('success', ['done']);
     }
 
-    public function get()
+    public function getLegalCases()
     {
         return Contact::where('user_id', Auth::id())->get();
+    }
+
+    public function get()
+    {
+        return Contact::all();
     }
 
     public function isAllowAccess($contactId)

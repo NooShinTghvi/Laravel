@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\GroupController;
+use App\Http\Middleware\CheckAdmin;
 use App\Http\Middleware\CheckUser;
 use Illuminate\Support\Facades\Route;
 
@@ -28,5 +30,8 @@ Route::prefix('contact')->middleware([CheckUser::class])->group(function () {
     Route::post('edit/{contactId}', [ContactController::class, 'saveChanges'])->name('contact.save.changes');
     Route::post('change/image/{contactId}', [ContactController::class, 'changeImage'])->name('contact.change.image');
     Route::post('remove/{contactId}', [ContactController::class, 'delete'])->name('contact.remove');
+});
 
+Route::prefix('admin')->middleware([CheckAdmin::class])->group(function () {
+    Route::post('', [AdminController::class, 'changeAccessingForContacts'])->name('admin.change.access');
 });

@@ -12,7 +12,7 @@ class Contact extends Component
     {
         $contactController = new ContactController();
         return view('livewire.contact', [
-            'contacts' => $contactController->get(),
+            'contacts' => $contactController->getLegalCases(),
             'path' => Storage::url('contact/image/RNzkHJLxve9oKns.jpeg'),
         ]);
     }
