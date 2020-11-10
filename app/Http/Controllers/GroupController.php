@@ -41,6 +41,11 @@ class GroupController extends Controller
         return Group::all();
     }
 
+    public function getOwnerOfUser($group)
+    {
+        return $group->user;
+    }
+
     public function findGroupsForSpecificContact($contact)
     {
         return $contact->groups()->get();

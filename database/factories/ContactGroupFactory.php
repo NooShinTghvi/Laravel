@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Http\Controllers\ContactController;
 use App\Models\Contact;
 use App\Models\ContactGroup;
 use App\Models\Group;
@@ -17,19 +18,17 @@ class ContactGroupFactory extends Factory
      */
     protected $model = ContactGroup::class;
 
-    private $contacts;
-    private $numberOfContacts;
     private $groups;
     private $numberOfGroups;
+    public $contactController;
 
     public function __construct($count = null, ?Collection $states = null, ?Collection $has = null, ?Collection $for = null, ?Collection $afterMaking = null, ?Collection $afterCreating = null, $connection = null)
     {
         parent::__construct($count, $states, $has, $for, $afterMaking, $afterCreating, $connection);
 
-        $this->contacts = Contact::all('id');
-        $this->numberOfContacts = sizeof($this->contacts);
-        $this->groups = Group::all('id');
+        $this->groups = Group::all();
         $this->numberOfGroups = sizeof($this->groups);
+        $this->contactController = new ContactController();
     }
 
     /**
@@ -40,9 +39,12 @@ class ContactGroupFactory extends Factory
      */
     public function definition()
     {
+        $group = $this->groups[random_int(1, $this->numberOfGroups - 1)];
+        $contacts = $this->contactController->findContactsFromOwnerOfGroup($group);
+        $numberOfContacts = sizeof($contacts);
         return [
-            'contact_id' => $this->contacts[random_int(1, $this->numberOfContacts - 1)],
-            'group_id' => $this->groups[random_int(1, $this->numberOfGroups - 1)],
+            'contact_id' => $contacts[random_int(1, $numberOfContacts - 1)]->id,
+            'group_id' => $group->id,
         ];
     }
 }

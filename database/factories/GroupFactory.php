@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Http\Controllers\UserController;
 use App\Models\Group;
 use App\Models\User;
 use Exception;
@@ -24,7 +25,8 @@ class GroupFactory extends Factory
     {
         parent::__construct($count, $states, $has, $for, $afterMaking, $afterCreating, $connection);
 
-        $this->users = User::all('id');
+        $userController = new UserController();
+        $this->users = $userController->getUsers();
         $this->numberOfUsers = sizeof($this->users);
     }
 
@@ -38,7 +40,7 @@ class GroupFactory extends Factory
     {
         return [
             'name' => $this->faker->firstName . ' group',
-            'user_id' => $this->users[random_int(1, $this->numberOfUsers - 1)],
+            'user_id' => $this->users[random_int(1, $this->numberOfUsers - 1)]->id,
         ];
     }
 }

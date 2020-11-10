@@ -49,6 +49,13 @@ class ContactController extends Controller
         return Contact::all();
     }
 
+    public function findContactsFromOwnerOfGroup($group)
+    {
+        $groupController = new GroupController();
+        $user = $groupController->getOwnerOfUser($group);
+        return $user->contacts()->get();
+    }
+
     public function isAllowAccess($contactId)
     {
         $contact = Contact::where('id', $contactId)->where('user_id', Auth::id())->first();

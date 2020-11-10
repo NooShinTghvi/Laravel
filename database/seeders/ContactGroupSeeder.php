@@ -14,6 +14,6 @@ class ContactGroupSeeder extends Seeder
      */
     public function run()
     {
-        ContactGroup::factory(35)->create();
+        ContactGroup::factory(120)->create();
     }
 }

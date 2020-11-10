@@ -22,4 +22,9 @@ class Group extends Model
     {
         return $this->belongsToMany('App\Models\Contact', 'contact_group');
     }
+
+    public function user()
+    {
+        return $this->belongsTo('App\Models\User');
+    }
 }

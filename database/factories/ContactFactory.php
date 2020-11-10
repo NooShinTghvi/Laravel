@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Http\Controllers\UserController;
 use App\Models\Contact;
 use App\Models\User;
 use Exception;
@@ -24,7 +25,8 @@ class ContactFactory extends Factory
     {
         parent::__construct($count, $states, $has, $for, $afterMaking, $afterCreating, $connection);
 
-        $this->users = User::all('id');
+        $userController = new UserController();
+        $this->users = $userController->getUsers();
         $this->numberOfUsers = sizeof($this->users);
     }
 
@@ -40,7 +42,7 @@ class ContactFactory extends Factory
             'first_name' => $this->faker->firstName,
             'last_name' => $this->faker->lastName,
             'phone' => '09' . substr(str_shuffle($this->permittedChars), 0, 9),
-            'user_id' => $this->users[random_int(1, $this->numberOfUsers - 1)],
+            'user_id' => $this->users[random_int(1, $this->numberOfUsers - 1)]->id,
         ];
     }
 }

@@ -22,6 +22,6 @@ class UserSeeder extends Seeder
             'is_admin' => true,
             'password' => '$2y$10$I.Oyi9xXNfb.7zciPCSfV.6YCi9Ozpbmqj8Kj2Bx0nceoKN/x4J/u', //12345678
         ]);
-        User::factory(5)->create();
+        User::factory(8)->create();
     }
 }
