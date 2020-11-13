@@ -24,7 +24,10 @@ class Contact extends Model
 
     public function getImagePathAttribute($value)
     {
-        return Storage::url($value);
+        if (is_null($value))
+            return null;
+        else
+            return Storage::url($value);
     }
 
     public function user()
