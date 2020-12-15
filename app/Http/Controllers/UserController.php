@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -12,7 +13,7 @@ class UserController extends Controller
         return 'hi';
     }
 
-    public function register(Request $request)
+    public function register(Request $request): array
     {
         $validatedData = $request->validate([
             'first_name' => 'required|max:75',
@@ -28,7 +29,7 @@ class UserController extends Controller
 
         $accessToken = $user->createToken('authToken')->accessToken;
 
-        return response(['user' => $user, 'access_token' => $accessToken]);
+        return ['user' => $user, 'access_token' => $accessToken];
     }
 
     public function login(Request $request)
@@ -44,18 +45,18 @@ class UserController extends Controller
 
         $accessToken = auth()->user()->createToken('authToken')->accessToken;
 
-        return response(['user' => auth()->user(), 'access_token' => $accessToken]);
+        return ['user' => auth()->user(), 'access_token' => $accessToken];
 
     }
 
-//    public function accountCharging(Request $request): int
-//    {
-//        $user = Auth::user();
-//        if ($request->filled('value')) {
-//            $user->credit += $request->get('value');
-//            $user->save();
-//            return 202;
-//        }
-//        return 203;
-//    }
+    public function accountCharging(Request $request): int
+    {
+        $user = Auth::user();
+        if ($request->filled('value')) {
+            $user->credit += $request->get('value');
+            $user->save();
+            return 202;
+        }
+        return 203;
+    }
 }
