@@ -2,13 +2,15 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class FoodPartySeeder extends Seeder
 {
-    private $wrench;
+    private CommonSeeder $wrench;
 
     public function __construct()
     {
@@ -17,17 +19,18 @@ class FoodPartySeeder extends Seeder
 
     public function run()
     {
-        if (!Storage::disk('local')->exists('files\foodParty.json')) {
-            return;
-        }
-        $jsonFile = Storage::disk('local')->get('files\foodParty.json');
-        $partyFoods = json_decode($jsonFile, true);
-        foreach ($partyFoods as $partyFood) {
-            $restaurantId = $this->getRestaurantId($partyFood);
-            foreach ($partyFood['menu'] as $food) {
-                $foodId = $this->getFoodId($food, $restaurantId);
-                $this->createPartyFood($food, $foodId);
+        try {
+            $jsonFile = Storage::disk('local')->get('files\foodParty.json');
+            $partyFoods = json_decode($jsonFile, true);
+            foreach ($partyFoods as $partyFood) {
+                $restaurantId = $this->getRestaurantId($partyFood);
+                foreach ($partyFood['menu'] as $food) {
+                    $foodId = $this->getFoodId($food, $restaurantId);
+                    $this->createPartyFood($food, $foodId);
+                }
             }
+        } catch (FileNotFoundException $e) {
+            log::error('file does not exists - FoodPartySeeder');
         }
     }
 

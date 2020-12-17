@@ -16,7 +16,7 @@ class CreatePaidCartsTable extends Migration
         Schema::create('paid_carts', function (Blueprint $table) {
             $table->id();
             $table->dateTime('order_date');
-            $table->enum('state',['loading','on_the_way','deliver']);
+            $table->enum('state', ['loading', 'on_the_way', 'deliver']);
             $table->unsignedBigInteger('cart_id');
             $table->foreign('cart_id')->references('id')->on('carts')
                 ->onUpdate('cascade');

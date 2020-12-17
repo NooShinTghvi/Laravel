@@ -2,13 +2,15 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class RestaurantSeeder extends Seeder
 {
-    private $wrench;
+    private CommonSeeder $wrench;
 
     public function __construct()
     {
@@ -17,23 +19,24 @@ class RestaurantSeeder extends Seeder
 
     public function run()
     {
-        if (!Storage::disk('local')->exists('files\restaurants.json')) {
-            return;
-        }
-        $jsonFile = Storage::disk('local')->get('files\restaurants.json');
-        $restaurants = json_decode($jsonFile, true);
-        foreach ($restaurants as $restaurant) {
-            if (DB::table('restaurants')->where('name', $restaurant['name'])->exists()) {
-                continue;
+        try {
+            $jsonFile = Storage::disk('local')->get('files\restaurants.json');
+            $restaurants = json_decode($jsonFile, true);
+            foreach ($restaurants as $restaurant) {
+                if (DB::table('restaurants')->where('name', $restaurant['name'])->exists()) {
+                    continue;
+                }
+                $locationId = $this->wrench->getLocationId($restaurant['location']['x'], $restaurant['location']['y']);
+                $restaurantId = DB::table('restaurants')->insertGetId([
+                    'name' => $restaurant['name'],
+                    'logo' => $restaurant ['logo'],
+                    'uid' => $restaurant['id'],
+                    'location_id' => $locationId
+                ]);
+                $this->createFood($restaurantId, $restaurant['menu']);
             }
-            $locationId = $this->wrench->getLocationId($restaurant['location']['x'], $restaurant['location']['y']);
-            $restaurantId = DB::table('restaurants')->insertGetId([
-                'name' => $restaurant['name'],
-                'logo' => $restaurant ['logo'],
-                'uid' => $restaurant['id'],
-                'location_id' => $locationId
-            ]);
-            $this->createFood($restaurantId, $restaurant['menu']);
+        } catch (FileNotFoundException $e) {
+            log::error('file does not exists - RestaurantSeeder');
         }
     }
 

@@ -15,19 +15,19 @@ class CreateFoodsTable extends Migration
     {
         Schema::create('foods', function (Blueprint $table) {
             $table->id();
-            $table->string('name',120);
-            $table->string('description',600);
+            $table->string('name', 120);
+            $table->string('description', 600);
             $table->integer('price');
-            $table->string('image',255);
+            $table->string('image', 255);
             $table->float('popularity');
-            $table->string('uid',24)->unique();
+            $table->string('uid', 24)->unique();
             $table->unsignedBigInteger('restaurant_id');
             $table->foreign('restaurant_id')->references('id')->on('restaurants')
                 ->onUpdate('cascade');
             $table->unsignedBigInteger('df_id')->nullable();
             $table->foreign('df_id')->references('id')->on('discounted_food')
                 ->onUpdate('cascade');
-            $table->unique(['name','restaurant_id']);
+            $table->unique(['name', 'restaurant_id']);
             $table->timestamps();
         });
     }

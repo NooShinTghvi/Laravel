@@ -15,9 +15,9 @@ class CreateRestaurantsTable extends Migration
     {
         Schema::create('restaurants', function (Blueprint $table) {
             $table->id();
-            $table->string('name',75)->unique();
-            $table->string('logo',255);
-            $table->string('uid',24)->unique();
+            $table->string('name', 75)->unique();
+            $table->string('logo', 255);
+            $table->string('uid', 24)->unique();
             $table->unsignedBigInteger('location_id');
             $table->foreign('location_id')->references('id')->on('locations')
                 ->onUpdate('cascade');
