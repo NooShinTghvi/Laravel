@@ -3,39 +3,45 @@
 namespace App\Http\Controllers\Models;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 
 class ShoppingCart extends Controller
 {
-    private $dataJson = array();
+    private array $dataJson;
 
-    public function __construct($restaurantName)
+    public function __construct($restaurantName, $uid)
     {
         $this->dataJson['restaurantName'] = $restaurantName;
-        $this->dataJson['foods'] = array();
-        $this->dataJson['DiscountedFoods'] = array();
+        $this->dataJson['uid'] = $uid;
+        $this->dataJson['foods'] = [];
+        $this->dataJson['DiscountedFoods'] = [];
         $this->dataJson['price'] = 0;
     }
 
-    public function addFood($name, $count, $price)
+    public function addFood($name, $uid, $count, $price)
     {
-        array_push($this->dataJson['foods'], array(
+        array_push($this->dataJson['foods'], [
             'name' => $name,
+            'uid' => $uid,
             'count' => $count,
-            'price' => $price));
+            'price' => $price
+        ]);
         $this->dataJson['price'] += ($count * $price);
     }
 
-    public function addDiscountedFood($name, $count, $price)
+    public
+    function addDiscountedFood($name, $uid, $count, $price)
     {
-        array_push($this->dataJson['DiscountedFoods'], array(
+        array_push($this->dataJson['DiscountedFoods'], [
             'name' => $name,
+            'uid' => $uid,
             'count' => $count,
-            'price' => $price));
+            'price' => $price
+        ]);
         $this->dataJson['price'] += ($count * $price);
     }
 
-    public function toJson(): array
+    public
+    function toJson(): array
     {
         return $this->dataJson;
     }

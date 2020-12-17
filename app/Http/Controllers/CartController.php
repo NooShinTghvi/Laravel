@@ -8,42 +8,58 @@ use App\Models\CartContent;
 use App\Models\DiscountedFood;
 use App\Models\Food;
 use App\Models\Restaurant;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
-    private $radius = 120;
+    private int $radius = 120;
 
-    public function addFood($restaurantUid, $foodUid): string
+    private function preliminaryReview($restaurantUid, $foodUid): array
     {
         $user = Auth::user();
         $restaurantStatus = $this->getStatusRestaurant($user, $restaurantUid);
         if ($restaurantStatus['id'] == -1)
-            return 'restaurant not found';
+            return ['result' => 'error', 'msg' => 'restaurant not found'];
         elseif (!$restaurantStatus['isNear'])
-            return 'restaurant is not around of You!';
+            return ['result' => 'error', 'msg' => 'restaurant is not around of You!'];
         $restaurantId = $restaurantStatus['id'];
 
         $cart = $this->createOrGetCart($user, $restaurantId);
         if ($restaurantId != $cart->restaurant_id)
-            return 'multiple restaurants';
+            return ['result' => 'error', 'msg' => 'multiple restaurants'];
 
         $food = $this->getFood($foodUid, $restaurantId);
         if (is_null($food))
-            return 'food not found';
+            return ['result' => 'error', 'msg' => 'food not found'];
+        return ['result' => 'success', 'cart' => $cart, 'food' => $food];
 
-        return $this->addFoodToCart($cart, $food);
+    }
+
+    public function addFood($restaurantUid, $foodUid): array
+    {
+        $data = $this->preliminaryReview($restaurantUid, $foodUid);
+        if ($data['result'] == 'error')
+            return $this->myResponse('error', [$data['msg']], []);
+
+        return $this->addFoodToCart($data['cart'], $data['food']);
+    }
+
+    public function removeFood($restaurantUid, $foodUid): array
+    {
+        $data = $this->preliminaryReview($restaurantUid, $foodUid);
+        if ($data['result'] == 'error')
+            return $this->myResponse('error', [$data['msg']], []);
+        return $this->removeFoodFromCart($data['cart'], $data['food']);
     }
 
     private function getStatusRestaurant($user, $restaurantUid): array
     {
         $restaurant = Restaurant::where('uid', $restaurantUid)->first();
         if (is_null($restaurant))
-            return array('id' => -1, 'isNear' => null);
+            return ['id' => -1, 'isNear' => null];
         if ($this->isNear($user->location->x, $user->location->y, $restaurant->location->x, $restaurant->location->y))
-            return array('id' => $restaurant->id, 'isNear' => true);
-        return array('id' => $restaurant->id, 'isNear' => false);
+            return ['id' => $restaurant->id, 'isNear' => true];
+        return ['id' => $restaurant->id, 'isNear' => false];
 
     }
 
@@ -69,14 +85,14 @@ class CartController extends Controller
         return $cart;
     }
 
-    private function addFoodToCart($cart, $food): string
+    private function addFoodToCart($cart, $food): array
     {
         $cartContents = $cart->cartContents;
         $cartId = $cart->id;
         $foodId = $food->id;
         if ($this->isFoodDiscounted($food))
             if (!$this->canUpdateDiscountedFoodData($food))
-                return 'food is over';
+                return $this->myResponse('error', ['food is over'], []);
         if (!is_null($cartContents) && !is_null($cartContents->where('food_id', $foodId)->first())) {
             $cartContents->where('food_id', $foodId)->first()->increment('count');
         } else {
@@ -85,7 +101,21 @@ class CartController extends Controller
                 'food_id' => $foodId
             ]);
         }
-        return 'done';
+        return $this->myResponse('success', [], []);
+    }
+
+    private function removeFoodFromCart($cart, $food): array
+    {
+        $cartContents = $cart->cartContents;
+        $foodId = $food->id;
+        $cartContent = $cartContents->where('food_id', $foodId)->first();
+        if (is_null($cartContent))
+            return $this->myResponse('error', ['there is no food in your card'], []);
+        if ($cartContent->count > 1)
+            $cartContent->decrement('count');
+        else if ($cartContent->count == 1)
+            $cartContent->delete();
+        return $this->myResponse('success', [], []);
     }
 
     private function isFoodDiscounted($food): bool
@@ -96,59 +126,58 @@ class CartController extends Controller
     private function canUpdateDiscountedFoodData($food): bool
     {
         $discountedFood = $food->discountedFood;
-        if ($discountedFood->count > 0) {
-            $discountedFood->decrement('count');
-            $discountedFood->save();
+        if ($discountedFood->count > 0)
             return true;
-        } else
+        else
             return false;
     }
 
-    public function getCart(): array|string
+    public function getCart(): array
     {
         $user = Auth::user();
         $cart = $user->cart;
         if (is_null($cart))
-            return 'cart is empty';
+            return $this->myResponse('warning', ['cart is empty'], []);
         $cartContents = $cart->cartContents;
         if (is_null($cartContents))
-            return 'cart is empty';
-        $shoppingCart = new ShoppingCart(Restaurant::find($cart->restaurant_id)->first()->name);
+            return $this->myResponse('warning', ['cart is empty'], []);
+        $restaurant = Restaurant::find($cart->restaurant_id);
+        $shoppingCart = new ShoppingCart($restaurant->name, $restaurant->uid);
         foreach ($cartContents as $cartContent) {
-            $food = Food::find($cartContent->food_id)->first();
-            if (!is_null($food->df_id)) { //add Discounted Food
-                $discountedFood = DiscountedFood::find($food->df_id)->first();
-                $shoppingCart->addDiscountedFood($food->name, $cartContent->count, $discountedFood->new_price);
-            } else { //add Food
-                $shoppingCart->addFood($food->name, $cartContent->count, $food->price);
+            $food = Food::find($cartContent->food_id);
+            if (is_null($food->df_id)) {  //add Food
+                $shoppingCart->addFood($food->name, $food->uid, $cartContent->count, $food->price);
+            } else {  //add Discounted Food
+                $discountedFood = DiscountedFood::find($food->df_id);
+                $shoppingCart->addDiscountedFood($food->name, $food->uid, $cartContent->count, $discountedFood->new_price);
             }
         }
-        return $shoppingCart->toJson();
+        return $this->myResponse('success', [], $shoppingCart->toJson());
     }
 
-    public function submit(): array |string
+    public function submit(): array
     {
         $user = Auth::user();
         $cart = $user->cart;
         if (is_null($cart))
-            return 'cart is empty';
+            return $this->myResponse('error', ['cart is empty'], []);
         $cartContents = $cart->cartContents;
         if (is_null($cartContents))
-            return 'cart is empty';
+            return $this->myResponse('error', ['cart is empty'], []);
         $price = $this->calculateSumOfPriceOrders($cartContents);
         if ($user->credit < $price)
-            return 'not enough';
-        $restaurantLocation = Restaurant::find($cart->restaurant_id)->first()->location;
+            return $this->myResponse('error', ['not enough money'], []);
+        $restaurantLocation = Restaurant::find($cart->restaurant_id)->location;
         $deliveryController = new DeliveryController();
         $result = $deliveryController->findDelivery($user->location, $restaurantLocation);
-        if ($result['found']){
+        if ($result['isFound']) {
             $cart->is_payed = true;
             $cart->save();
             $user->credit -= $price;
             $user->save();
-        }
-        return $result;
-
+            return $this->myResponse('success', '', ['deliveryTime' => $result['deliveryTime']]);
+        } else
+            return $this->myResponse('error', ['delivery not found, try later.'], []);
     }
 
     private function calculateSumOfPriceOrders($cartContents): int
@@ -157,7 +186,8 @@ class CartController extends Controller
         foreach ($cartContents as $cartContent) {
             $food = Food::find($cartContent->food_id)->first();
             if (!is_null($food->df_id)) { //add Discounted Food Price
-                $discountedFood = DiscountedFood::find($food->df_id)->first();
+                $discountedFood = DiscountedFood::find($food->df_id);
+                $discountedFood->decrement('count');
                 $sum += $discountedFood->new_price;
             } else { //add Food Price
                 $sum += $food->price;
