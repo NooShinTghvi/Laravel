@@ -28,13 +28,13 @@ class DeliveryController extends Controller
                 $minTime = $time;
             }
         }
+        $deliveryTime = Carbon::now()->addMinutes($minTime);  // date + time   +  min
         $bestDelivery->is_busy = true;
+        $bestDelivery->delivery_time = $deliveryTime;
         $bestDelivery->save();
-        $current = Carbon::now();  // date + time
-        $current = $current->addMinutes($minTime);
         return [
             'isFound' => true,
-            'deliveryTime' => $current->toDateTimeLocalString()
+            'deliveryTime' => $deliveryTime->toDateTimeLocalString()
         ];
     }
 }

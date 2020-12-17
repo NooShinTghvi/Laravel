@@ -15,9 +15,10 @@ class CreateDeliveriesTable extends Migration
     {
         Schema::create('deliveries', function (Blueprint $table) {
             $table->id();
-            $table->string('unique_id',36)->unique();
+            $table->string('unique_id', 36)->unique();
             $table->float('velocity');
             $table->boolean('is_busy')->nullable()->default(false);
+            $table->dateTime('delivery_time')->default(\Carbon\Carbon::now());
             $table->unsignedBigInteger('location_id');
             $table->foreign('location_id')->references('id')->on('locations')
                 ->onUpdate('cascade');
