@@ -25,11 +25,11 @@ class User extends Authenticatable
 
     public function location(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Location');
+        return $this->belongsTo(Location::class);
     }
 
     public function cart(): HasOne
     {
-        return $this->hasOne('App\Models\Cart')->where('is_payed', '=', false);
+        return $this->hasOne(Cart::class)->where('is_payed', '=', false);
     }
 }
