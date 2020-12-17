@@ -19,6 +19,6 @@ class Food extends Model
 
     public function discountedFood(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo('App\Models\DiscountedFood', 'df_id');
+        return $this->belongsTo(DiscountedFood::class, 'df_id');
     }
 }

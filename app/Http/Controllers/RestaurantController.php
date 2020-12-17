@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Restaurant;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use JetBrains\PhpStorm\Pure;
 
 class RestaurantController extends Controller
 {
@@ -22,10 +20,10 @@ class RestaurantController extends Controller
                 array_push($nearRestaurants, $restaurant);
             }
         }
-        return $nearRestaurants;
+        return $this->myResponse('success', [], ['restaurants' => $nearRestaurants]);
     }
 
-    public function findRestaurant($idOrName): string
+    public function findRestaurant($idOrName): array
     {
         $user = Auth::user();
 
@@ -35,11 +33,11 @@ class RestaurantController extends Controller
         }
         if (!is_null($restaurant)) {
             if ($this->isNear($user->location->x, $user->location->y, $restaurant->location->y, $restaurant->location->y))
-                return $this->packingRestaurantWithFoodsData($restaurant);
+                return $this->myResponse('success', [], ['restaurant' => $this->packingRestaurantWithFoodsData($restaurant)]);
             else
-                return 'restaurant is not around of You!';
+                return $this->myResponse('error', ['restaurant is not around of You!'], []);
         }
-        return 'restaurant not found!';
+        return $this->myResponse('error', ['restaurant not found!'], []);
     }
 
     public function isNear($userLocationX, $userLocationY, $restaurantLocationX, $restaurantLocationY): bool
@@ -47,9 +45,33 @@ class RestaurantController extends Controller
         return sqrt(pow($userLocationX - $restaurantLocationX, 2) + pow($userLocationY - $restaurantLocationY, 2)) < $this->radius;
     }
 
-    private function packingRestaurantWithFoodsData($restaurant)
+    private function packingRestaurantWithFoodsData($restaurant): array
     {
         $restaurant->foods; // add foods
-        return $restaurant;
+        $discountedFood = [];
+        $foods = [];
+        foreach ($restaurant['foods'] as $f) {
+            if (is_null($f->df_id))
+                array_push($foods, $f);
+            else
+                array_push($discountedFood, [
+                    'name' => $f->name,
+                    'description' => $f->description,
+                    'price' => $f->price,
+                    'image' => $f->image,
+                    'popularity' => $f->popularity,
+                    'uid' => $f->uid,
+                    'new_price' => $f->discountedFood->new_price,
+                    'count' => $f->discountedFood->count
+                ]);
+        }
+        return [
+            'name' => $restaurant['name'],
+            'logo' => $restaurant['logo'],
+            'uid' => $restaurant['uid'],
+            'location' => $restaurant['location'],
+            'foods' => $foods,
+            'discountedFood' => $discountedFood
+        ];
     }
 }
