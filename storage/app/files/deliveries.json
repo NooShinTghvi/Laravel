@@ -1,0 +1,34 @@
+[
+    {
+        "id": "41887722-c165-4260-a79c-edb5254308d6",
+        "velocity": 8,
+        "location": {
+            "x": 259,
+            "y": 280
+        }
+    },
+    {
+        "id": "5cdb664a-d8ee-4664-ab0d-544b4991e905",
+        "velocity": 9,
+        "location": {
+            "x": -29,
+            "y": -51
+        }
+    },
+    {
+        "id": "a5084ae8-c58c-4716-aa70-1b8f1b3fc1e3",
+        "velocity": 6,
+        "location": {
+            "x": -3,
+            "y": 220
+        }
+    },
+    {
+        "id": "c00e34f1-ed9f-42da-bd0a-1ef7239b8cd6",
+        "velocity": 2,
+        "location": {
+            "x": -130,
+            "y": -177
+        }
+    }
+]
