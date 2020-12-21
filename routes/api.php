@@ -16,6 +16,7 @@ Route::get('/t', [UserController::class, 'test']);
 
 Route::prefix('user')->middleware('auth:api')->name('user.')->group(function () {
     Route::get('/', [UserController::class, 'me']);
+    Route::get('/logout',[UserController::class,'logout'])->name('logout');
     Route::get('/charge', [UserController::class, 'accountCharging'])->name('charge');
 });
 

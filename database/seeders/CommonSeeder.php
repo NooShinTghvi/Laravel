@@ -9,12 +9,11 @@ class CommonSeeder extends Seeder
 {
     public function getLocationId($x, $y): int
     {
-        if (DB::table('locations')->where('x', $x)->where('y', $y)->exists()) {
-            $locationId = DB::table('locations')->where('x', $x)->where('y', $y)->first('id');
-            $locationId = json_decode(json_encode($locationId), true)['id'];
-        } else
-            $locationId = DB::table('locations')->insertGetId(['x' => $x, 'y' => $y]);
-        return $locationId;
+//        if (DB::table('locations')->where('x', $x)->where('y', $y)->exists()) {
+//            $locationId = DB::table('locations')->where('x', $x)->where('y', $y)->first('id');
+//            $locationId = json_decode(json_encode($locationId), true)['id'];
+//        }
+        return DB::table('locations')->insertGetId(['x' => $x, 'y' => $y]);
     }
 
     public function creatUniqueIdForFood()

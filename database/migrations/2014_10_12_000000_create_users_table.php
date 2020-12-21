@@ -22,7 +22,7 @@ class CreateUsersTable extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->integer('credit')->default(0);
             $table->string('password');
-            $table->unsignedBigInteger('location_id')->default(1);
+            $table->unsignedBigInteger('location_id');
             $table->foreign('location_id')->references('id')->on('locations')
                 ->onUpdate('cascade');
             $table->rememberToken();
