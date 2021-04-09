@@ -3,18 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Passport\HasApiTokens;
 
-/**
- * @method static create(array $validatedData)
- * @method static where(string $string, mixed $email)
- */
-class User extends Authenticatable
+class Admin extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
-
+    use HasFactory, Notifiable;
 
     protected $fillable = ['name', 'email', 'password',];
 

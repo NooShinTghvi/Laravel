@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    /*public function __construct()
+    {
+        $this->middleware('guest')->except('logout');
+        $this->middleware('guest:user')->except('logout');
+    }*/
+
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -19,7 +27,8 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response(['errors' => $validator->errors()->all()], 422);
         }
-        $request['password'] = bcrypt($request->get('password'));
+//        $request['password'] = bcrypt($request->get('password'));
+        $request['password'] = Hash::make($request->get('password'));
         $request['remember_token'] = Str::random(10);
         $user = User::create($request->toArray());
 
@@ -37,12 +46,24 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response(['errors' => $validator->errors()->all()], 422);
         }
-        if (!auth()->attempt($request->toArray())) {
+
+        $user = User::where('email', $request->get('email'))->first();
+        if (!Hash::check($request->get('password'), $user->password))
             return response(['message' => 'Invalid Credentials']);
-        }
 
-        $accessToken = auth()->user()->createToken('authToken')->accessToken;
+        $accessToken = $user->createToken('authToken')->accessToken;
 
-        return response(['user' => auth()->user(), 'access_token' => $accessToken]);
+        return response(['user' => $user, 'access_token' => $accessToken]); //
+    }
+
+    public function me(): string
+    {
+        $user = Auth::guard('user')->user();
+        return response($user);
+    }
+
+    protected function guard()
+    {
+        return Auth::guard('user');
     }
 }
