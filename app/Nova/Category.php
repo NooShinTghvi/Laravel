@@ -7,7 +7,6 @@ use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
-use Laravel\Nova\Http\Requests\NovaRequest;
 
 class Category extends Resource
 {
@@ -17,13 +16,13 @@ class Category extends Resource
      *
      * @var string
      */
-    public static $group = '‌Base';
+    public static $group = 'Base';
     /**
      * The model the resource corresponds to.
      *
      * @var string
      */
-    public static $model = 'Modules\Exam\Entities\Category';
+    public static $model = \App\Models\Category::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
