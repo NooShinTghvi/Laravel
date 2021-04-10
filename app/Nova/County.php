@@ -2,21 +2,25 @@
 
 namespace App\Nova;
 
-use App\Models\Admin;
 use Illuminate\Http\Request;
-use Laravel\Nova\Fields\Gravatar;
+use Laravel\Nova\Fields\BelongsTo;
 use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\Text;
 
-class User extends Resource
+class County extends Resource
 {
+    /**
+     * The logical group associated with the resource.
+     *
+     * @var string
+     */
+    public static $group = 'Base';
     /**
      * The model the resource corresponds to.
      *
      * @var string
      */
-    public static $model = Admin::class;
+    public static $model = \App\Models\County::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
@@ -31,7 +35,7 @@ class User extends Resource
      * @var array
      */
     public static $search = [
-        'id', 'name', 'email',
+        'id', 'name',
     ];
 
     /**
@@ -40,27 +44,18 @@ class User extends Resource
      * @param Request $request
      * @return array
      */
-    public function fields(Request $request): array
+    public function fields(Request $request)
     {
         return [
             ID::make()->sortable(),
-
-            Gravatar::make(),
-
-            Text::make('Name')
+            Text::make('Name', 'name')
+                ->rules('required')
+                ->creationRules('unique:county,name')
+                ->updateRules('unique:county,name,{{resourceId}}')
+                ->sortable(),
+            BelongsTo::make('Province', 'Province', 'App\Nova\Province')
                 ->sortable()
-                ->rules('required', 'max:255'),
-
-            Text::make('Email')
-                ->sortable()
-                ->rules('required', 'email', 'max:254')
-                ->creationRules('unique:admins,email')
-                ->updateRules('unique:admins,email,{{resourceId}}'),
-
-            Password::make('Password')
-                ->onlyOnForms()
-                ->creationRules('required', 'string', 'min:8')
-                ->updateRules('nullable', 'string', 'min:8'),
+                ->searchable(),
         ];
     }
 

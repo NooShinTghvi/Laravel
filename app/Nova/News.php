@@ -2,28 +2,33 @@
 
 namespace App\Nova;
 
-use App\Models\Admin;
+use Cimpleo\NovaSummernote\NovaSummernote;
 use Illuminate\Http\Request;
-use Laravel\Nova\Fields\Gravatar;
 use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Password;
+use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Text;
 
-class User extends Resource
+class News extends Resource
 {
+    /**
+     * The logical group associated with the resource.
+     *
+     * @var string
+     */
+    public static $group = 'Start Page';
     /**
      * The model the resource corresponds to.
      *
      * @var string
      */
-    public static $model = Admin::class;
+    public static $model = \App\Models\News::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
      *
      * @var string
      */
-    public static $title = 'name';
+    public static $title = 'title';
 
     /**
      * The columns that should be searched.
@@ -31,7 +36,7 @@ class User extends Resource
      * @var array
      */
     public static $search = [
-        'id', 'name', 'email',
+        'id', 'title'
     ];
 
     /**
@@ -40,27 +45,20 @@ class User extends Resource
      * @param Request $request
      * @return array
      */
-    public function fields(Request $request): array
+    public function fields(Request $request)
     {
         return [
             ID::make()->sortable(),
-
-            Gravatar::make(),
-
-            Text::make('Name')
-                ->sortable()
-                ->rules('required', 'max:255'),
-
-            Text::make('Email')
-                ->sortable()
-                ->rules('required', 'email', 'max:254')
-                ->creationRules('unique:admins,email')
-                ->updateRules('unique:admins,email,{{resourceId}}'),
-
-            Password::make('Password')
-                ->onlyOnForms()
-                ->creationRules('required', 'string', 'min:8')
-                ->updateRules('nullable', 'string', 'min:8'),
+            Text::make('Title', 'title')
+                ->rules('required', 'max:250')
+                ->sortable(),
+            NovaSummernote::make('Context', 'context')
+                ->rules('required')
+                ->hideFromIndex(),
+            Image::make('Image', 'image')
+                ->disk('public')
+                ->rules('max:2500')
+                ->hideFromIndex(),
         ];
     }
 

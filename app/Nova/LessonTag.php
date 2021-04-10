@@ -2,21 +2,26 @@
 
 namespace App\Nova;
 
-use App\Models\Admin;
 use Illuminate\Http\Request;
-use Laravel\Nova\Fields\Gravatar;
+use Laravel\Nova\Fields\BelongsTo;
+use Laravel\Nova\Fields\BelongsToMany;
 use Laravel\Nova\Fields\ID;
-use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\Text;
 
-class User extends Resource
+class LessonTag extends Resource
 {
+    /**
+     * The logical group associated with the resource.
+     *
+     * @var string
+     */
+    public static $group = 'Exam';
     /**
      * The model the resource corresponds to.
      *
      * @var string
      */
-    public static $model = Admin::class;
+    public static $model = \App\Models\LessonTag::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
@@ -31,7 +36,7 @@ class User extends Resource
      * @var array
      */
     public static $search = [
-        'id', 'name', 'email',
+        'id',
     ];
 
     /**
@@ -40,27 +45,19 @@ class User extends Resource
      * @param Request $request
      * @return array
      */
-    public function fields(Request $request): array
+    public function fields(Request $request)
     {
         return [
             ID::make()->sortable(),
-
-            Gravatar::make(),
-
             Text::make('Name')
                 ->sortable()
-                ->rules('required', 'max:255'),
-
-            Text::make('Email')
-                ->sortable()
-                ->rules('required', 'email', 'max:254')
-                ->creationRules('unique:admins,email')
-                ->updateRules('unique:admins,email,{{resourceId}}'),
-
-            Password::make('Password')
-                ->onlyOnForms()
-                ->creationRules('required', 'string', 'min:8')
-                ->updateRules('nullable', 'string', 'min:8'),
+                ->rules('required', 'max:100'),
+            BelongsTo::make('Lesson', 'Lesson', 'App\Nova\Lesson')
+                ->nullable()
+                ->sortable(),
+            BelongsToMany::make('Exams', 'Exams', 'App\Nova\Exam')->fields(function () {
+                return [];
+            }),
         ];
     }
 
