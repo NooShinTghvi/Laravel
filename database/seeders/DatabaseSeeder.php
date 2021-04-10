@@ -2,8 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use App\Models\EducationBase;
+use App\Models\Exam;
 use App\Models\Field;
+use App\Models\Lesson;
+use App\Models\LessonTag;
+use App\Models\Phase;
+use App\Models\Question;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +24,8 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
 //        $this->userModule();
-        $this->adminModule();
+//        $this->adminModule();
+        $this->examModule();
     }
 
     private function userModule()
@@ -33,6 +40,16 @@ class DatabaseSeeder extends Seeder
     {
         $this->addAdmin();
         $this->addLinks();
+    }
+
+    private function examModule()
+    {
+        Category::factory(15)->create();
+        LessonTag::factory(30)->create();
+        Exam::factory(30)->create();
+        Phase::factory(30)->create();
+        Lesson::factory(30)->create();
+        Question::factory(30)->create();
     }
 
     private function filledCityOfIran()

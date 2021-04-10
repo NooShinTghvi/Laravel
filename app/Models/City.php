@@ -16,12 +16,12 @@ class City extends Model
 
     public function Province(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo('Modules\User\Entities\Province', 'province_id');
+        return $this->belongsTo(Province::class, 'province_id');
     }
 
     public function County(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo('Modules\User\Entities\County', 'county_id');
+        return $this->belongsTo(County::class, 'county_id');
     }
 
     public function user(): \Illuminate\Database\Eloquent\Relations\HasMany

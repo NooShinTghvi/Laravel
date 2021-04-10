@@ -2,17 +2,17 @@
 
 namespace Database\Factories;
 
-use App\Models\Field;
+use App\Models\LessonTag;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class FieldFactory extends Factory
+class LessonTagFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
      * @var string
      */
-    protected $model = Field::class;
+    protected $model = LessonTag::class;
 
     /**
      * Define the model's default state.
@@ -22,8 +22,7 @@ class FieldFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->unique()->firstName . ' fld',
-            'description' => $this->faker->text(125),
+            'name' => $this->faker->unique()->colorName . ' lsn tag',
         ];
     }
 }

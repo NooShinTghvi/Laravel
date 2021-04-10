@@ -32,7 +32,7 @@ class CreateUsersTable extends Migration
             $table->foreign('city_id')->references('id')
                 ->on('city')->onUpdate('cascade')->onDelete('cascade');
             $table->string('melli_image_path')->nullable();
-            $table->boolean('isAcceptable')->default(false)->nullable();
+            $table->boolean('isAcceptable')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

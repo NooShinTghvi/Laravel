@@ -2,17 +2,17 @@
 
 namespace Database\Factories;
 
-use App\Models\Field;
+use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class FieldFactory extends Factory
+class CategoryFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
      * @var string
      */
-    protected $model = Field::class;
+    protected $model = Category::class;
 
     /**
      * Define the model's default state.
@@ -22,7 +22,8 @@ class FieldFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->unique()->firstName . ' fld',
+            'name' => $this->faker->unique()->firstName . ' ctgry',
+            'parent_category_id' => null,
             'description' => $this->faker->text(125),
         ];
     }

@@ -10,12 +10,12 @@ class County extends Model
     use HasFactory;
 
     public $timestamps = false;
-    protected $fillable = ['name','province_id'];
+    protected $fillable = ['name', 'province_id'];
     protected $visible = ['name'];
     protected $hidden = ['province_id'];
 
     public function Province(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo('Modules\User\Entities\Province','province_id');
+        return $this->belongsTo(Province::class, 'province_id');
     }
 }
