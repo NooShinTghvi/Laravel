@@ -17,11 +17,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+//        $this->userModule();
+        $this->adminModule();
+    }
+
+    private function userModule()
+    {
         Field::factory(10)->create();
         EducationBase::factory(25)->create();
         $this->filledCityOfIran();
         User::factory(10)->create();
+    }
 
+    private function adminModule()
+    {
+        $this->addAdmin();
+        $this->addLinks();
     }
 
     private function filledCityOfIran()
@@ -65,5 +76,28 @@ class DatabaseSeeder extends Seeder
                 ['name' => $city['n'], 'province_id' => $city['p'], 'county_id' => $city['c']]
             );
         }
+    }
+
+    public function addAdmin()
+    {
+        DB::table('admins')->insert([
+            'name' => 'admin',
+            'email' => 'admin@gmail.com',
+            'password' => '$2y$10$wKlbhaPac.DHqnmaDU4wO.ryFSn7XwxD6RiZTMoN9axrYbM/HEmza' //12345678
+        ]);
+    }
+
+    public function addLinks()
+    {
+        $links = [
+            ['n' => 'آزمون آنلاین', 'l' => 'http://127.0.0.1:8000/'],
+            ['n' => 'کلاس آنلاین', 'l' => 'http://127.0.0.1:8000/'],
+        ];
+        foreach ($links as $link) {
+            DB::table('links')->insert(
+                ['name' => $link['n'], 'link' => $link['l']]
+            );
+        }
+
     }
 }
