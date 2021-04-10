@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @method static where(string $string, $userId)
+ * @method static create(array $array)
+ */
 class Cart extends Model
 {
     use HasFactory;
