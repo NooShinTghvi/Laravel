@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Discount;
 use App\Models\EducationBase;
 use App\Models\Exam;
 use App\Models\Field;
@@ -25,7 +26,8 @@ class DatabaseSeeder extends Seeder
     {
 //        $this->userModule();
 //        $this->adminModule();
-        $this->examModule();
+//        $this->examModule();
+        $this->transactionModule();
     }
 
     private function userModule()
@@ -50,6 +52,11 @@ class DatabaseSeeder extends Seeder
         Phase::factory(30)->create();
         Lesson::factory(30)->create();
         Question::factory(30)->create();
+    }
+
+    private function transactionModule()
+    {
+        Discount::factory(25)->create();
     }
 
     private function filledCityOfIran()
