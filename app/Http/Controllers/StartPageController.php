@@ -20,8 +20,8 @@ class StartPageController extends Controller
     }
 
 
-    public function oneNews($news_id)
+    public function oneNews($newsId)
     {
-        return response(['news' => News::find($news_id)]);
+        return response(['news' => News::find($newsId)]);
     }
 }

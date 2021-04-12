@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\StartPageController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -8,12 +9,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/error', function () {
     return response('Plz Login first', 401);
 })->name('login.Plz');
-Route::get('/t', function () {
-    return response('Test');
-})->middleware('auth:user');
+Route::get('/t2', [AuthController::class, 't2'])->middleware('auth:user');
+Route::get('/t', [AuthController::class, 'user'])->middleware('auth:user');
 
 Route::get('main', [StartPageController::class, 'main'])->name('main');
-Route::get('news/{news_id}', [StartPageController::class, 'oneNews'])->name('one.news');
+Route::get('news/{newsId}', [StartPageController::class, 'oneNews'])->name('one.news');
 
 Route::post('register', [AuthController::class, 'register'])->name('register');
 Route::get('login', [AuthController::class, 'login'])->name('login');
@@ -21,15 +21,18 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:user'
 
 Route::get('information', [UserController::class, 'information'])->middleware('auth:user')->name('information');
 Route::patch('information', [UserController::class, 'updateInformation'])->middleware('user')->name('information.update');
-Route::get('counties/{province_id}', [UserController::class, 'getCountiesByProvince'])->name('counties');
-Route::get('cities/{province_id}/{county_id}', [UserController::class, 'getCitiesByProvinceANDCounty'])->name('cities');
+Route::get('counties/{provinceId}', [UserController::class, 'getCountiesByProvince'])->name('counties');
+Route::get('cities/{provinceId}/{countyId}', [UserController::class, 'getCitiesByProvinceANDCounty'])->name('cities');
+
+
+Route::prefix('cart')->middleware('auth:user')->name('cart.')->group(function () {
+    Route::get('', [CartController::class, 'shoppingCartPreparation']);
+    Route::patch('/add/exam/{examId}', [CartController::class, 'addExamToCart'])->name('add.exam');
+    Route::patch('/delete/exam/{examId}', [CartController::class, 'deleteExamFromCart'])->name('delete.exam');
+});
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/report/{phaseId}/{userId}', 'AdminController@report');
-});
-
-Route::prefix('start/page')->name('start.page.')->group(function () {
-
 });
 
 Route::prefix('buyable')->middleware('user')->name('buyable.')->group(function () {
@@ -42,17 +45,6 @@ Route::prefix('buyable')->middleware('user')->name('buyable.')->group(function (
 
 Route::view('/basket', 'buyable::basket');
 
-Route::prefix('cart')->middleware('user')->name('cart.')->group(function () {
-    Route::get('/buy/immediate/exam/{examId}', 'CartController@addImmediateExam')->name('addImmediate');
-    Route::get('/add/exam/{examId}', 'CartController@addExamToCart')->name('addExam'); //todo change get to post
-    Route::get('/delete/exam/{examId}', 'CartController@deleteExamFromCart')->name('deleteExam'); //todo change get to post
-    Route::get('/show/exams', 'CartController@showExamsOnCart')->name('showProducts');
-
-    /*Route::get('/', function (){
-        dd(session()->all());
-    });*/
-
-});
 
 Route::prefix('exam')->name('exam.')->group(function () {
     Route::get('/all', 'ExamController@showAllExams')->name('show');

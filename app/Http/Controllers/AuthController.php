@@ -1,4 +1,4 @@
-<?php /** @noinspection ALL */
+<?php
 
 namespace App\Http\Controllers;
 
@@ -69,7 +69,7 @@ class AuthController extends Controller
         return response(null, 204);
     }
 
-    public function user()
+    public function user(): ?\Illuminate\Contracts\Auth\Authenticatable
     {
         return Auth::user();
     }

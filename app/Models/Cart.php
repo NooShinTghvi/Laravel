@@ -15,7 +15,7 @@ class Cart extends Model
     use HasFactory;
 
     protected $fillable = ['user_id', 'expire_date',];
-    protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
+    protected $hidden = ['id', 'user_id', 'is_pay', 'transaction_id', 'expire_date', 'created_at', 'updated_at', 'deleted_at',];
 
     public function Exams(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {

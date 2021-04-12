@@ -11,6 +11,12 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    public function getUser(): ?\Illuminate\Contracts\Auth\Authenticatable
+    {
+        $authController = new AuthController();
+        return $authController->user();
+    }
+
     public function callFunctionFromAnotherModule($configName, $moduleName, $name, $inputs)
     {
         $CoinConfig = Config::get($configName);

@@ -13,11 +13,6 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    public function getUser()
-    {
-        $authController = new AuthController();
-        return $authController->user();
-    }
 
     public function updateInformation(Request $request)
     {
@@ -81,13 +76,13 @@ class UserController extends Controller
         ]);
     }
 
-    public function getCountiesByProvince($province_id)
+    public function getCountiesByProvince($provinceId)
     {
-        return response(['counties' => County::where('province_id', $province_id)->get()]);
+        return response(['counties' => County::where('province_id', $provinceId)->get()]);
     }
 
-    public function getCitiesByProvinceANDCounty($province_id, $county_id)
+    public function getCitiesByProvinceANDCounty($provinceId, $countyId)
     {
-        return response(['cities' => City::where('province_id', $province_id)->where('county_id', $county_id)->get()]);
+        return response(['cities' => City::where('province_id', $provinceId)->where('county_id', $countyId)->get()]);
     }
 }

@@ -17,8 +17,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = ['first_name', 'last_name', 'email', 'password', 'mobile'];
-    protected $visible = ['first_name', 'last_name', 'email', 'melli_code', 'mobile'];
-    protected $hidden = ['password', 'remember_token', 'updated_at',];
+    protected $hidden = ['password', 'remember_token', 'updated_at', 'email_verified_at', 'isAcceptable', 'created_at'];
     protected $casts = ['email_verified_at' => 'datetime',];
 
 //    public function sendPasswordResetNotification($token)
@@ -41,6 +40,11 @@ class User extends Authenticatable
     public function city(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(City::class);
+    }
+
+    public function LastUnpaidCart(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Cart::class)->where('is_pay', false);
     }
 
     public function Carts(): \Illuminate\Database\Eloquent\Relations\HasMany
