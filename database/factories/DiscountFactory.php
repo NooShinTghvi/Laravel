@@ -24,12 +24,12 @@ class DiscountFactory extends Factory
     {
         $current = Carbon::now();
         $type = $this->faker->randomElement(['PERCENT', 'CASH']);
-        $money = $this->faker->randomElement([2000, 5000, 10000, 20000]);
+        $money = $this->faker->randomElement([2, 5, 10, 20, 25, 45, 50]) * 1000;
         return [
             'code' => $this->faker->unique()->firstName . ' code',
             'type' => $this->faker->randomElement(['PERCENT', 'CASH']),
             'value' => ($type == 'PERCENT') ? $this->faker->randomElement([5, 10, 25, 50]) : $money,
-            'maximum_value' => ($type == 'PERCENT') ? $this->faker->randomElement([2000, 5000, 10000, 20000]) : $money,
+            'maximum_value' => ($type == 'PERCENT') ? $this->faker->randomElement([2, 5, 10, 20, 25, 45, 50]) * 1000 : $money,
             'expire_date' => $current->addDays($this->faker->numberBetween(2, 30))->format('Y-m-d'),
             'count' => $this->faker->numberBetween(25, 45),
         ];

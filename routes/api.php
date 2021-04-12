@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\StartPageController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -31,17 +32,19 @@ Route::prefix('cart')->middleware('auth:user')->name('cart.')->group(function ()
     Route::patch('/delete/exam/{examId}', [CartController::class, 'deleteExamFromCart'])->name('delete.exam');
 });
 
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/report/{phaseId}/{userId}', 'AdminController@report');
-});
+Route::get('check/discount/code', [DiscountController::class, 'isValidCode'])->middleware('auth:user')->name('check. discount');
 
 Route::prefix('buyable')->middleware('user')->name('buyable.')->group(function () {
-    Route::post('apply/discount/code', 'DiscountController@isValidCode')->name('discount.apply');
 //    Route::get('/show/info', 'TransactionController@viewPurchaseInformation')->name('buyable.buy_showInfo'); //todo get rewrite to post
     Route::get('buy', 'TransactionController@buy')->name('buy'); //todo get rewrite to post
     Route::get('verify/{factorNumber}', 'TransactionController@verifyInfo');
     Route::get('user/transaction', 'TransactionController@myTransaction')->name('user.transaction');
 });
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/report/{phaseId}/{userId}', 'AdminController@report');
+});
+
 
 Route::view('/basket', 'buyable::basket');
 
