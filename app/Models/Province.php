@@ -11,6 +11,6 @@ class Province extends Model
 
     public $timestamps = false;
     protected $fillable = ['name'];
-    protected $visible = ['name'];
+    protected $visible = ['id', 'name'];
     protected $hidden = [];
 }

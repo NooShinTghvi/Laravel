@@ -10,23 +10,18 @@ use Illuminate\Routing\Controller;
 
 class StartPageController extends Controller
 {
-    public function sliders()
+    public function main()
     {
-        return Slider::orderBy('created_at', 'desc')->get();
+        return response([
+            'sliders' => Slider::orderBy('created_at', 'desc')->get(),
+            'links' => Link::orderBy('created_at', 'desc')->get(),
+            'news' => News::orderBy('created_at', 'desc')->get()
+        ]);
     }
 
-    public function allLinks()
-    {
-        return Link::orderBy('created_at', 'desc')->get();
-    }
-
-    public function allNews()
-    {
-        return News::orderBy('created_at', 'desc')->get();
-    }
 
     public function oneNews($news_id)
     {
-        return News::find($news_id);
+        return response(['news' => News::find($news_id)]);
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static where(string $string, mixed $get)
+ * @method static find($discount_id)
  */
 class Discount extends Model
 {

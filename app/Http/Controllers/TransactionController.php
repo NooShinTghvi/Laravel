@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
+use App\Models\Discount;
+use App\Models\Transaction;
 use Faker\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;

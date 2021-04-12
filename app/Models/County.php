@@ -11,7 +11,7 @@ class County extends Model
 
     public $timestamps = false;
     protected $fillable = ['name', 'province_id'];
-    protected $visible = ['name'];
+    protected $visible = ['id', 'name'];
     protected $hidden = ['province_id'];
 
     public function Province(): \Illuminate\Database\Eloquent\Relations\BelongsTo

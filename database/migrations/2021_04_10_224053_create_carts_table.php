@@ -20,6 +20,8 @@ class CreateCartsTable extends Migration
                 ->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
             $table->date('expire_date');
             $table->boolean('is_pay')->default(false);
+            $table->integer('final_cost')->default(0);
+            $table->json('exam_info')->nullable();
             $table->unsignedBigInteger('transaction_id')->nullable();
 //            $table->foreign('transaction_id')
 //                ->references('id')->on('transactions')->onUpdate('cascade')->onDelete('cascade');

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @method static where(string $string, $userId)
  * @method static create(array $array)
+ * @method static find($cart_id)
  */
 class Cart extends Model
 {

@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection ALL */
 
 namespace App\Http\Controllers;
 
@@ -17,24 +17,31 @@ class AuthController extends Controller
         $this->middleware('guest:user')->except('logout');
     }*/
 
+    protected function guard()
+    {
+        return Auth::guard('user');
+    }
+
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'first_name' => 'required|string|max:75',
+            'last_name' => 'required|string|max:75',
+            'email' => 'required|string|email|max:191|unique:users',
+            'mobile' => 'required|string|max:191|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ]);
         if ($validator->fails()) {
             return response(['errors' => $validator->errors()->all()], 422);
         }
-//        $request['password'] = bcrypt($request->get('password'));
-        $request['password'] = Hash::make($request->get('password'));
+
+        $request['password'] = Hash::make($request->input('password'));
         $request['remember_token'] = Str::random(10);
         $user = User::create($request->toArray());
 
         $accessToken = $user->createToken('authToken')->accessToken;
 
-        return response(['user' => $user, 'access_token' => $accessToken]);
+        return response(['user' => $user, 'access_token' => $accessToken], 201);
     }
 
     public function login(Request $request)
@@ -47,23 +54,23 @@ class AuthController extends Controller
             return response(['errors' => $validator->errors()->all()], 422);
         }
 
-        $user = User::where('email', $request->get('email'))->first();
-        if (!Hash::check($request->get('password'), $user->password))
+        $user = User::where('email', $request->input('email'))->first();
+        if (!Hash::check($request->input('password'), $user->password))
             return response(['message' => 'Invalid Credentials']);
 
         $accessToken = $user->createToken('authToken')->accessToken;
 
-        return response(['user' => $user, 'access_token' => $accessToken]); //
+        return response(['user' => $user, 'access_token' => $accessToken]);
     }
 
-    public function me(): string
+    public function logout()
     {
-        $user = Auth::guard('user')->user();
-        return response($user);
+        Auth::user()->token()->revoke();
+        return response(null, 204);
     }
 
-    protected function guard()
+    public function user()
     {
-        return Auth::guard('user');
+        return Auth::user();
     }
 }
