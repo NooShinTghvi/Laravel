@@ -7,11 +7,6 @@ use App\Models\Phase;
 use App\Models\UPLesson;
 use App\Models\UPLQuestion;
 use App\Models\UserPhase;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 
 class EvaluationController extends Controller
@@ -162,7 +157,7 @@ class EvaluationController extends Controller
             $rate = 1;
             $akf = array_key_first($this->lessonUserBalance[$lk]);
             $bestBalance = $this->lessonUserBalance[$lk][$akf];
-            $highestPercentage = UPLesson::where('lesson_id', $lk)->where('balance',$bestBalance)->first();
+            $highestPercentage = UPLesson::where('lesson_id', $lk)->where('balance', $bestBalance)->first();
             $lessonOfPhase->highest_balance = $highestPercentage->grade;
             $lessonOfPhase->save();
             foreach ($ub as $u => $b) {
@@ -189,11 +184,12 @@ class EvaluationController extends Controller
     public function reportOfTest($phaseId)
     {
         $report = [];
-        $phase=Phase::find($phaseId);
-        $exam=$phase->Exam;
+        $phase = Phase::find($phaseId);
+        $exam = $phase->Exam;
 //        return view('exam::report')->with(compact('phase'))->with(compact('exam'));
         $ups = UserPhase::where('phase_id', $phaseId)->get();
-        $up = $ups->where('user_id', session()->get('userId'))->first();
+        $user = $this->getUser();
+        $up = $ups->where('user_id', $user->id)->first();
         // رتبه ی کلی فرد
         $report['rating'] = $up->rating;
         // درصد هر فرد با احتساب نمره ی منفی
@@ -236,18 +232,10 @@ class EvaluationController extends Controller
             ];
         }
 
-        return view('exam::report')
-            ->with(compact('phase'))
-            ->with(compact('exam'))
-                ->with(compact('report'));
-//        dd(json_encode($report));
-//        $phase = Phase::find($phaseId);
-//        return view("exam::report")
-//            ->with(compact('report'))
-//            ->with(compact('phase'));
-    }
-
-    public function reportAll(){
-        return view('exam::reportAll');
+        return response([
+            'phase' => $phase,
+            'exam' => $exam,
+            'report' => $report
+        ]);
     }
 }

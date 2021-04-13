@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DiscountController;
+use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\ExamController;
 use App\Http\Controllers\StartPageController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -32,40 +34,38 @@ Route::prefix('cart')->middleware('auth:user')->name('cart.')->group(function ()
     Route::patch('/delete/exam/{examId}', [CartController::class, 'deleteExamFromCart'])->name('delete.exam');
 });
 
-Route::get('check/discount/code', [DiscountController::class, 'isValidCode'])->middleware('auth:user')->name('check. discount');
-
-Route::prefix('buyable')->middleware('user')->name('buyable.')->group(function () {
-//    Route::get('/show/info', 'TransactionController@viewPurchaseInformation')->name('buyable.buy_showInfo'); //todo get rewrite to post
-    Route::get('buy', 'TransactionController@buy')->name('buy'); //todo get rewrite to post
-    Route::get('verify/{factorNumber}', 'TransactionController@verifyInfo');
-    Route::get('user/transaction', 'TransactionController@myTransaction')->name('user.transaction');
-});
-
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/report/{phaseId}/{userId}', 'AdminController@report');
-});
-
-
-Route::view('/basket', 'buyable::basket');
-
+Route::get('check/discount/code', [DiscountController::class, 'isValidCode'])->middleware('auth:user')->name('check.discount');
 
 Route::prefix('exam')->name('exam.')->group(function () {
-    Route::get('/all', 'ExamController@showAllExams')->name('show');
-    Route::get('/detail/one/{examId}', 'ExamController@detailExam')->name('detail.one');
-    Route::get('/entrance/{examId}/{phaseId}', 'ExamController@entranceExam')->name('entrance');
-    Route::get('/show/all/phases/{examId}', 'ExamController@showAllPhases')->name('show.all.phases');
-    Route::post('/filter', 'ExamController@filterExams')->name('filter');
+    Route::get('', [ExamController::class, 'showAll'])->name('show');
+    Route::get('{examId}', [ExamController::class, 'detailOne'])->name('detail.one');
+    Route::get('phases/{examId}', [ExamController::class, 'allPhases'])->name('all.phases');
+    Route::post('filter', [ExamController::class, 'filterExams'])->name('filter');
 
-    Route::get('/answer/download/{phaseId}', 'ExamController@downloadAnswer')->name('answer.download');
-    Route::get('/question/download/{phaseId}', 'ExamController@downloadQuestion')->name('question.download');
+    Route::get('mine', [ExamController::class, 'myExams'])->middleware('auth:user')->name('mine');
+    Route::get('/entrance/{examId}/{phaseId}', [ExamController::class, 'entranceExam'])->middleware('auth:user')->name('entrance');
+    Route::get('/start/{examId}/{phaseId}', [ExamController::class, 'canUserStartTest'])->middleware('auth:user')->name('start.test');
+    Route::post('/submit/test/{phaseId}', [ExamController::class, 'handle'])->middleware('auth:user')->name('submit.test');
 
-    Route::get('/my', 'ExamController@myExams')->name('my')->middleware('user');
-    Route::get('/start/test/{examId}/{phaseId}', 'ExamController@canUserStartTest')->name('start.test')->middleware('user');
-    Route::post('/submit/test/{phaseId}', 'ExamController@handle')->name('submit.test')->middleware('user');
-    Route::get('/report/all', 'EvaluationController@reportAll')->name('report.all')->middleware('user');
-    Route::get('/report/{phaseId}', 'EvaluationController@reportOfTest')->name('report')->middleware('user');
-
-//    Route::get('/test', 'ExamController@export');
+    Route::get('/answer/download/{phaseId}', [ExamController::class, 'downloadAnswer'])->middleware('auth:user')->name('answer.download');
+    Route::get('/question/download/{phaseId}', [ExamController::class, 'downloadQuestion'])->middleware('auth:user')->name('question.download');
+    Route::get(' /report/{phaseId}', [EvaluationController::class, 'reportOfTest'])->middleware('auth:user')->name('report');
 });
+
+Route::prefix('buyable')->middleware('user')->name('buyable . ')->group(function () {
+//    Route::get(' / show / info', 'TransactionController@viewPurchaseInformation')->name('buyable . buy_showInfo'); //todo get rewrite to post
+    Route::get('buy', 'TransactionController@buy')->name('buy'); //todo get rewrite to post
+    Route::get('verify/{factorNumber}', 'TransactionController@verifyInfo');
+    Route::get('user/transaction', 'TransactionController@myTransaction')->name('user . transaction');
+});
+
+Route::prefix('admin')->name('admin . ')->group(function () {
+    Route::get(' / report /{
+        phaseId}/{
+        userId}', 'AdminController@report');
+});
+
+
+Route::view(' / basket', 'buyable::basket');
 
 

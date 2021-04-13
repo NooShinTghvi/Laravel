@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -58,10 +59,8 @@ class Exam extends Model
         foreach ($exams as $k => $exam) {
             $data[$k]['lessons'] = $exam->LessonTags()->get()->toArray();
         }
-        Controller::ReturnParentValue(
-            Field::class, 'field_id', 'name', $data, 'field_name');
-        Controller::ReturnParentValue(
-            EducationBase::class, 'education_base_id', 'name', $data, 'education_base_name');
+        Controller::ReturnParentValue(Field::class, 'field_id', 'name', $data, 'field_name');
+        Controller::ReturnParentValue(EducationBase::class, 'education_base_id', 'name', $data, 'education_base_name');
         return $data;
     }
 

@@ -13,171 +13,34 @@ use App\Models\UPLesson;
 use App\Models\UPLQuestion;
 use App\Models\User;
 use App\Models\UserPhase;
-use Cake\Chronos\Date;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 
 class ExamController extends Controller
 {
-    public function showAllExams()
+    public function showAll()
     {
-        $exams = Exam::ShowAllExam();
-        $lessonTags = LessonTag::all()->toArray();
-        $fields = Field::all()->toArray();
-        $educationBases = EducationBase::all()->toArray();
-        $exams_html = view('exam::layouts.shop.all')->with(compact('exams'))->render();
-        return view('exam::all')
-            ->with(compact('exams_html'))
-            ->with(compact('lessonTags'))
-            ->with(compact('fields'))
-            ->with(compact('educationBases'));
-    }
-
-    public function detailExam($examId)
-    {
-//        dd(Exam::DetailOfExam($examId));
-        return view('exam::detail')->with('myContent', [
-            'exam' => Exam::DetailOfExam($examId),
+        return response([
+            '$exams' => Exam::ShowAllExam(),
+            'lessonTags' => LessonTag::all(),
+            'fields' => Field::all(),
+            'educationBases' => EducationBase::all()
         ]);
     }
 
-    public function entranceExam($examId, $phaseId)
+    public function detailOne($examId)
     {
-//        dd(Exam::DetailOfExam($examId));
-        return view('exam::entrance')->with('myContent', [
-            'exam' => Exam::DetailOfExam($examId),
-            'phase' => Phase::find($phaseId)->toArray()
-        ]);
+        return response(['exam' => Exam::DetailOfExam($examId),]);
     }
 
-    public function showAllPhases($examId)
+    public function allPhases($examId)
     {
-//        dd(Exam::AllPhases($examId));
-        return view('exam::phases')->with([
+        return response([
             'phases' => Exam::AllPhases($examId),
             'exam_id' => $examId
         ]);
-    }
-
-    public function myExams()
-    {
-        $user = User::find(session()->get('userId'));
-        $carts = $user->Carts;
-        $myExams = [];
-        foreach ($carts as $cart) {
-            if ($cart->is_pay) {
-                $exams = $cart->Exams()->get();
-                foreach ($exams as $exam)
-                    array_push($myExams, $exam->toArray());
-            }
-        }
-        return view('exam::my', compact('myExams'));
-    }
-
-    public function canUserStartTest($examId, $phaseId)
-    {
-        $phase = Phase::find($phaseId);
-        $crnDate = Carbon::now()->toDateString();
-        $crnTime = Carbon::now()->toTimeString();
-        $phaseDate = $phase->date->toDateString();
-
-        if ($crnDate < $phaseDate or ($crnDate == $phaseDate and $crnTime < $phase->time_start)) {
-            return redirect()->back()->withErrors([
-                'status' => 304,
-                'message' => 'زمان آزمون هنوز شروع نشده است'
-            ]);
-        } else if ($crnDate > $phaseDate or ($crnDate == $phaseDate and $crnTime > $phase->time_end)) {
-            return redirect()->back()->withErrors([
-                'status' => 304,
-                'message' => 'زمان آزمون تمام شده است'
-            ]);
-        } else {
-            $userId = session()->get('userId');
-            if (!$this->buyUserExam($userId, $examId)) {
-                return redirect()->back()->withErrors([
-                    'status' => 404,
-                    'message' => 'برای شرکت در این مرحله آزمون را خریداری کنید'
-                ]);
-            }
-            $student = User::find($userId);
-            if ($student->melli_image_path == null) {
-                return redirect()->back()->withErrors([
-                    'status' => 304,
-                    'message' => 'هنوز فایل کارت ملی خود را آپلود نکرده اید'
-                ]);
-            }
-            if (!$student->isAcceptable) {
-                return redirect()->back()->withErrors([
-                    'status' => 304,
-                    'message' => 'هنوز فایل کارت ملی شما تایید نشده است, منتظر بمانید'
-                ]);
-            }
-            $up_ = UserPhase::where('user_id', $userId)->where('phase_id', $phaseId)->first();
-            if ($up_ != null) {
-                $t = $up_->created_at;
-                if ($crnTime > $t->addMinutes($phase->duration)->toTimeString()) {
-                    return redirect()->back()->withErrors([
-                        'status' => 304,
-                        'message' => 'زمان آزمون دادن شما تمام شده است'
-                    ]);
-                } else {
-                    if ($up_->finish == null) {
-                        $test = $this->questionsOfPhase($phase);
-                        return view('exam::exam')->with('content', [
-                            'test' => $test,
-                            'duration' => $phase->duration,
-                            'phaseId' => $phase->id,
-                            'phase' => $phase
-                        ]);
-                    } else {
-                        return redirect()->back()->withErrors([
-                            'status' => 304,
-                            'message' => 'شما پاسخ نامه ی خود را ارسال کرده اید'
-                        ]);
-                    }
-                }
-            } else {
-                UserPhase::create([
-                    'user_id' => $userId,
-                    'phase_id' => $phaseId,
-                ]);
-                $test = $this->questionsOfPhase($phase);
-                return view('exam::exam')->with('content', [
-                    'test' => $test,
-                    'duration' => $phase->duration,
-                    'phaseId' => $phase->id,
-                    'phase' => $phase
-                ]);
-            }
-        }
-    }
-
-    public function buyUserExam($userId, $examId): bool
-    {
-        $carts = User::find($userId)->Carts()->where('is_pay', true)->get();
-        foreach ($carts as $cart) {
-            foreach ($cart->Exams()->get() as $exam) {
-                if ($exam->id == $examId)
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    public function questionsOfPhase($phase): array
-    {
-        $lessons = $phase->Lessons()->get();
-        $test = array();
-        foreach ($lessons as $lesson) {
-            array_push($test, [$lesson->name . '%!' . $lesson->id => $lesson->Questions()->get()->toArray()]);
-        }
-        return $test;
     }
 
     public function filterExams(Request $request): string
@@ -213,14 +76,117 @@ class ExamController extends Controller
                 }
             }
         }
-        $exams_html = view('exam::layouts.shop.all')
-            ->with(compact('exams'))
-            ->with(compact('lessonTags'))
-            ->with(compact('fields'))
-            ->with(compact('educationBases'))
-            ->render();
-        return $exams_html;
+
+        return response([
+            '$exams' => $exams,
+            'lessonTags' => $lessonTags,
+            'fields' => $fields,
+            'educationBases' => $educationBases
+        ]);
     }
+
+    public function myExams()
+    {
+        $user = $this->getUser();
+        $carts = $user->Carts;
+        $myExams = [];
+        foreach ($carts as $cart) {
+            if ($cart->is_pay) {
+                $exams = $cart->Exams()->get();
+                foreach ($exams as $exam)
+                    array_push($myExams, $exam->toArray());
+            }
+        }
+        return response(['exams' => $myExams]);
+    }
+
+    public function entranceExam($examId, $phaseId)
+    {
+        return response([
+            'exam' => Exam::DetailOfExam($examId),
+            'phase' => Phase::find($phaseId)->toArray()
+        ]);
+    }
+
+
+    public function canUserStartTest($examId, $phaseId)
+    {
+        $phase = Phase::find($phaseId);
+        $crnDate = Carbon::now()->toDateString();
+        $crnTime = Carbon::now()->toTimeString();
+        $phaseDate = $phase->date->toDateString();
+
+        if ($crnDate < $phaseDate or ($crnDate == $phaseDate and $crnTime < $phase->time_start)) {
+            return response(['error' => true, 'message' => 'زمان آزمون هنوز شروع نشده است']);
+        } else if ($crnDate > $phaseDate or ($crnDate == $phaseDate and $crnTime > $phase->time_end)) {
+            return response(['error' => true, 'message' => 'زمان آزمون تمام شده است']);
+        } else {
+            $user = $this->getUser();
+            if (!$this->buyUserExam($user->id, $examId)) {
+                return response(['error' => true, 'message' => 'برای شرکت در این مرحله آزمون را خریداری کنید']);
+            }
+            if ($user->melli_image_path == null) {
+                return response(['error' => true, 'message' => 'هنوز فایل کارت ملی خود را آپلود نکرده اید']);
+            }
+            if (!$user->isAcceptable) {
+                return response(['error' => true, 'message' => 'هنوز فایل کارت ملی شما تایید نشده است, منتظر بمانید']);
+            }
+            $up_ = UserPhase::where('user_id', $user->id)->where('phase_id', $phaseId)->first();
+            if ($up_ != null) {
+                $t = $up_->created_at;
+                if ($crnTime > $t->addMinutes($phase->duration)->toTimeString()) {
+                    return response(['error' => true, 'message' => 'زمان آزمون دادن شما تمام شده است']);
+                } else {
+                    if ($up_->finish == null) {
+                        $test = $this->questionsOfPhase($phase);
+                        return response([
+                            'test' => $test,
+                            'duration' => $phase->duration,
+                            'phaseId' => $phase->id,
+                            'phase' => $phase
+                        ]);
+                    } else {
+                        return response(['error' => true, 'message' => 'شما پاسخ نامه ی خود را ارسال کرده اید']);
+                    }
+                }
+            } else {
+                UserPhase::create([
+                    'user_id' => $user->id,
+                    'phase_id' => $phaseId,
+                ]);
+                $test = $this->questionsOfPhase($phase);
+                return response([
+                    'test' => $test,
+                    'duration' => $phase->duration,
+                    'phaseId' => $phase->id,
+                    'phase' => $phase
+                ]);
+            }
+        }
+    }
+
+    public function buyUserExam($userId, $examId): bool
+    {
+        $carts = User::find($userId)->Carts()->where('is_pay', true)->get();
+        foreach ($carts as $cart) {
+            foreach ($cart->Exams()->get() as $exam) {
+                if ($exam->id == $examId)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    public function questionsOfPhase($phase): array
+    {
+        $lessons = $phase->Lessons()->get();
+        $test = array();
+        foreach ($lessons as $lesson) {
+            array_push($test, [$lesson->name . '%!' . $lesson->id => $lesson->Questions()->get()->toArray()]);
+        }
+        return $test;
+    }
+
 
     public function submitTest($lessons, $phaseId)
     {
@@ -243,7 +209,7 @@ class ExamController extends Controller
         }
     }
 
-    public function handle(Request $request, $phaseId): \Illuminate\Http\RedirectResponse
+    public function handle($phaseId)
     {
         $lessons = [];
         $inputs = request()->all();
@@ -268,28 +234,25 @@ class ExamController extends Controller
         }
 
         $this->submitTest($lessons, $phaseId);
-        return redirect()->route('exam.show.all.phases',Phase::find($phaseId)->Exam->id);
+        return response(['exam_id' => Phase::find($phaseId)->Exam->id]);
     }
 
-    public function downloadAnswer($phaseId){
+    public function downloadAnswer($phaseId)
+    {
         $phase = Phase::find($phaseId);
         if ($path = $phase->file_of_answer_path)
-            return \response()->download(public_path(env('IMAGE_PATH_PREFIX').$path));
-        $message = "متاسفانه فایل پاسخنامه فاز ".$phase->name." از آزمون ".$phase->Exam->name." در دسترس نمیباشد";
-        return redirect()->back()->with([
-            'file_not_found' => $message
-        ]);
+            return \response()->download(public_path(env('IMAGE_PATH_PREFIX') . $path));
+        $message = "متاسفانه فایل پاسخنامه فاز " . $phase->name . " از آزمون " . $phase->Exam->name . " در دسترس نمیباشد";
+        return response(['error' => true, 'message' => $message]);
     }
 
-    public function downloadQuestion($phaseId){
-
+    public function downloadQuestion($phaseId)
+    {
         $phase = Phase::find($phaseId);
         if ($path = $phase->file_of_question_path)
-            return \response()->download(public_path(env('IMAGE_PATH_PREFIX').$path));
-        $message = "متاسفانه دفترچه سوالات فاز ".$phase->name." از آزمون ".$phase->Exam->name." در دسترس نمیباشد";
-        return redirect()->back()->with([
-            'file_not_found' => $message
-        ]);
+            return \response()->download(public_path(env('IMAGE_PATH_PREFIX') . $path));
+        $message = "متاسفانه دفترچه سوالات فاز " . $phase->name . " از آزمون " . $phase->Exam->name . " در دسترس نمیباشد";
+        return response(['error' => true, 'message' => $message]);
 //        return \response()->download(public_path(env('IMAGE_PATH_PREFIX').Phase::find($phaseId)->file_of_question_path));
     }
 
