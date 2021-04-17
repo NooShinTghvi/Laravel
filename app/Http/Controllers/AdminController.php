@@ -8,7 +8,6 @@ use App\Models\UserPhase;
 use Illuminate\Routing\Controller;
 
 
-//test
 class AdminController extends Controller
 {
     public function report($phaseId, $userId)

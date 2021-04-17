@@ -5,18 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Discount;
 use App\Models\Transaction;
-use Faker\Factory;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 
 class TransactionController extends Controller
 {
-    private $zpo; //zarinpal object
-    private $cto;
+    private ZarinpalController $zpo; //zarinpal object
+    private CartController $cto;
 
     public function __construct()
     {
@@ -24,128 +21,107 @@ class TransactionController extends Controller
         $this->cto = new CartController();
     }
 
-    public function viewPurchaseInformation(Request $request)
+    private function allowToCalculatePayment(Request $request): array
     {
-        $calculatedNumbers = $this->calculatePayment($request);
-        if (!$calculatedNumbers['keepOn']) {
-            return redirect('blank')->withErrors($calculatedNumbers['content'], 'errors');
-        }
-        $myContent = [
-            'price' => $calculatedNumbers['price'],
-            'amountOfDiscount' => $calculatedNumbers['amountOfDiscount'],
-            'amountOfPayment' => $calculatedNumbers['amountOfPayment'],
-            'code' => $calculatedNumbers['discountCode'],
-        ];
-        return view('buyable::purchaseInformation')->with('myContent', $myContent);
-    }
-
-    private function calculatePayment(Request $request)
-    {
-        $keepOn = false;
-        $price = 0;
-        $amountOfDiscount = 0;
-        $amountOfPayment = 0;
-        $discountCode = null;
-        $content = '';
-        $validatedData = Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'code' => 'nullable|exists:discounts',
             'description' => 'nullable|string',
         ]);
-        if ($validatedData->fails()) {
-            $keepOn = false;
-            $content = $validatedData->errors()->all();
-        } else {
-            if ($request->filled('code')) {
-                $d = new DiscountController;
-                $result = $d->isValidCode($request);
-                if ($result->getData()->status == 'error') {
-                    $keepOn = false;
-                    $content = $result->getData()->massage;
 
-                } else {
-                    $keepOn = true;
-                    $price = $result->getData()->massage->price;
-                    $amountOfDiscount = $result->getData()->massage->amountOfDiscount;
-                    $amountOfPayment = $result->getData()->massage->amountOfPayment;
-                    $discountCode = $request->input('code');
-                }
-            } else {
-                $keepOn = true;
-                $price = session()->get('finalCost');
-                $amountOfDiscount = 0;
-                $amountOfPayment = $price;
-                $discountCode = null;
-            }
+        if ($validator->fails()) {
+            return ['error' => true, 'message' => $validator->errors()->all()];
         }
+
+        if ($this->isThereDiscountCode($request)) {
+            return $this->applyDiscountOnPayment($request);
+        }
+
+        $user = $this->getUser();
+        $cart = $user->LastUnpaidCart;
         return [
-            'keepOn' => $keepOn,
-            'content' => $content,
-            'price' => $price,
-            'amountOfDiscount' => $amountOfDiscount,
-            'amountOfPayment' => $amountOfPayment,
-            'discountCode' => $discountCode,
+            'error' => false,
+            'amountOfDiscount' => 0,
+            'amountOfPayment' => $cart->final_cost,
+            'cart' => $cart,
+            'discount' => null
+        ];
+    }
+
+    private function isThereDiscountCode(Request $request): bool
+    {
+        return $request->filled('code');
+    }
+
+    private function applyDiscountOnPayment(Request $request): array
+    {
+        $discount = Discount::where('code', $request->input('code'))->first();
+        $d = new DiscountController;
+        $result = $d->checkingValidation($discount);
+        if ($result['error'])
+            return $result;
+
+        $content = $d->applyDiscountCode($discount, $result['discountedCost'], $result['cart']);
+        return [
+            'error' => false,
+            'amountOfDiscount' => $content['amountOfDiscount'],
+            'amountOfPayment' => $content['amountOfPayment'],
+            'cart' => $result['cart'],
+            'discount' => $discount
         ];
     }
 
     public function buy(Request $request)
     {
-        $calculatedNumbers = $this->calculatePayment($request);
-        if (!$calculatedNumbers['keepOn']) {
-            return response()->json($calculatedNumbers['content']);
+        $result = $this->allowToCalculatePayment($request);
+        if ($result['error']) {
+            return response($result);
         }
+        $amountOfPayment = $result['amountOfPayment'];
+        $cart = $result['cart'];
+        $discount = $result['discount'];
 
-        $factorNumber = Factory::create()->unique()->numberBetween(1000000000, 999999999999);
-        while (Transaction::where('factorNumber', $factorNumber)->exists()) {
-            $factorNumber = Factory::create()->unique()->numberBetween(1000000000, 999999999999);
-        }
-        $tran = Transaction::create([
-            'amount' => $calculatedNumbers['amountOfPayment'],
+        $factorNumber = $this->createFactorNumber();
+
+        Transaction::create([
+            'amount' => $amountOfPayment,
             'factorNumber' => $factorNumber,
-            'cart_id' => session()->get('cartId'),
-            'discount_id' => $request->filled('code') ?
-                Discount::where('code', $calculatedNumbers['discountCode'])->firstOrFail()->id : null,
+            'cart_id' => $cart->id,
+            'discount_id' => is_null($discount) ? null : $discount->id,
             'description' => $request->filled('description') ? $request->input('description') : null,
         ]);
 
-
-        if ($calculatedNumbers['discountCode'] != null) {
-            $tran->discount_id = Discount::where('code', $calculatedNumbers['discountCode'])->firstOrFail()->id;
-            $tran->save();
-        }
-
-        $res = $this->zpo->pay($calculatedNumbers['amountOfPayment'], url('/buyable/verify/' . $factorNumber), "nooshin.tghvi@gmail.com", "09135138355");
-        return redirect($res);
+        $res = $this->zpo->pay($amountOfPayment, url('/verify/payment/' . $factorNumber), null, null);
+        return response($res);
     }
 
     public function verifyInfo(Request $request, $factorNumber)
     {
         $t = Transaction::where('factorNumber', $factorNumber)->firstOrFail();
-        $cnt = $this->zpo->order($request, $t->amount);
-        if ($cnt['ok']) {
-            $t->description = $cnt['massage'];
+        $result = $this->zpo->order($request, $t->amount);
+        $t->description = $result['massage'];
+        if ($result['ok']) {
             $t->condition = 'SUCCESSFUL';
             $t->save();
             $c = Cart::find($t->cart_id);
             $c->is_pay = true;
             $c->transaction_id = $t->id;
             $c->save();
-            $this->cto->storeDataInSession(['userId' => session()->get('userId')]);
+            $this->cto->create($c->user_id);
             if ($t->discount_id != null) {
                 $d = Discount::find($t->discount_id);
                 $d->used_number = $d->used_number + 1;
                 $d->save();
             }
         } else {
-            $t->description = $cnt['massage'];
             $t->condition = 'FAILED';
             $t->save();
         }
-        return redirect()->route('buyable.user.transaction');
+        return response(null, 204);
     }
 
     public function myTransaction()
     {
-        $user = auth('user')->user();
+        $user = $this->getUser();
         $carts = $user->Carts;
         $transactions = [];
         foreach ($carts as $cart) {
@@ -155,8 +131,16 @@ class TransactionController extends Controller
                 array_push($transactions, $c[0]);
             }
         }
-//        return $transactions;
-        return view('buyable::transactions', compact('transactions'));
+        return response($transactions);
+    }
+
+    private function createFactorNumber(): string
+    {
+        $factorNumber = Str::random(10);
+        while (Transaction::where('factorNumber', $factorNumber)->exists()) {
+            $factorNumber = Str::random(10);
+        }
+        return $factorNumber;
     }
 
 }

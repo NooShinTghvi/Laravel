@@ -260,8 +260,4 @@ class ExamController extends Controller
     {
 //        return Excel::download(new ResultsExportExcel(1), 'Re.xlsx');
     }
-//    public function export()
-//    {
-////        return Excel::download(new ResultsExportExcel(1), 'Re.xlsx');
-//    }
 }

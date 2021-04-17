@@ -20,25 +20,29 @@ class DiscountController extends Controller
         }
 
         $discount = Discount::where('code', $request->input('code'))->first();
+
+        $result = $this->checkingValidation($discount);
+        if ($result['error']) {
+            return response(['error' => true, 'message' => $result['message']]);
+        }
+
+        $result = $this->applyDiscountCode($discount, $result['discountedCost'], $result['cart']);
+        return response([
+            'message' => ' کد تخفیف اعمال شد و مقدار ' . $result['amountOfDiscount'] . ' تومان از خرید شما کم شده است ',
+            'amountOfDiscount' => $result['amountOfDiscount'],
+            'amountOfPayment' => $result['amountOfPayment']
+
+        ]);
+    }
+
+    public function checkingValidation($discount): array
+    {
         $current = Carbon::now();
         if ($current->gt($discount->expire_date)) {
-            return response([
-                'error' => true,
-                'message' => 'تاریخ استفاده از کد مورد نظر به پایان رسیده است'
-//                'massage' => [
-//                    'now' => $current,
-//                    'expire' => $discount->expire_date,
-//                    'diff' => $current->gt($discount->expire_date),
-//                       'errors' => $validatedData->errors()
-//                        ->add('field', 'تاریخ استفاده از کد مورد نظر به پایان رسیده است.'),
-//                ],
-            ]);
+            return ['error' => true, 'message' => 'تاریخ استفاده از کد مورد نظر به پایان رسیده است'];
         }
         if ($discount->count == $discount->used_number) {
-            return json_encode([
-                'error' => true,
-                'message' => 'تعداد افراد استفاده کننده از این کد تخفیف به حداکثر رسیده است'
-            ]);
+            return ['error' => true, 'message' => 'تعداد افراد استفاده کننده از این کد تخفیف به حداکثر رسیده است'];
         }
 
         $exams = $discount->Exams;
@@ -51,70 +55,43 @@ class DiscountController extends Controller
         $cart = $user->LastUnpaidCart;
         $examsInfo = json_decode($cart->exam_info, true);
 
-        $userExams = [];
         $existInDiscount = false;
         $discountedCost = 0;
-        $unDiscountedCost = 0;
         foreach ($examsInfo as $key => $item) {
             if (in_array($item['id'], $examIdsOfDiscount)) { //array_key_exists($value['id'], $examIdsOfDiscount)
                 $existInDiscount = true;
                 $discountedCost += $item['price'];
-                $userExams[$key] = [
-                    'id' => $item['id'], 'price' => $item['price'], 'useDiscount' => true,
-                    'discountedCost' => $discountedCost, 'unDiscountedCost' => $unDiscountedCost,
-                ];
-            } else {
-                $unDiscountedCost += $item['price'];
-                $userExams[$key] = [
-                    'id' => $item['id'], 'price' => $item['price'], 'useDiscount' => false,
-                    'discountedCost' => $discountedCost, 'unDiscountedCost' => $unDiscountedCost,
-                ];
             }
         }
 
         if (!$existInDiscount) {
-            return response(['error' => true, 'message' => 'این کدتخفیف برای آزمون مورد نظر شما نیست']);
+            return ['error' => true, 'message' => 'این کدتخفیف برای آزمون مورد نظر شما نیست'];
         }
 
-        return $this->applyDiscountCode($discount, $userExams);
+        return ['error' => false, 'discountedCost' => $discountedCost, 'cart' => $cart];
     }
 
-    public function applyDiscountCode($discount, $userExams)
+    public function applyDiscountCode($discount, $discountedCost, $cart): array
     {
-        $totalDiscountCost = end($userExams)['discountedCost']; //Amount of expense that includes discount
-        $totalUnDiscountCost = end($userExams)['unDiscountedCost']; //Amount of expense not including discount
         if ($discount->type == 'PERCENT') {
-            $amountOfDiscount = $totalDiscountCost * $discount->value / 100;
+            $amountOfDiscount = $discountedCost * $discount->value / 100;
             if ($amountOfDiscount > $discount->maximum_value) {
                 $amountOfDiscount = $discount->maximum_value;
             }
-            $amountOfPayment = $totalUnDiscountCost + ($totalDiscountCost - $amountOfDiscount);
+            $amountOfPayment = $cart->final_cost - $amountOfDiscount;
         } else { //type is 'CASH'
-            if ($totalDiscountCost < $discount->value) {
-                $amountOfDiscount = $totalDiscountCost;
-            } else {
+            if ($discountedCost > $discount->value) {
                 $amountOfDiscount = $discount->value;
-            }
-            $amountOfPayment = $totalUnDiscountCost + $totalDiscountCost - $amountOfDiscount;
-            if ($amountOfPayment < 0) {
-                $amountOfPayment = 0;
-                $amountOfDiscount = $totalUnDiscountCost + $totalDiscountCost;
+                $amountOfPayment = $cart->final_cost - $amountOfDiscount;
+            } else {
+                $amountOfDiscount = $discountedCost;
+                $t = $cart->final_cost - $amountOfDiscount;
+                $amountOfPayment = ($t > 0) ? $t : 0;
             }
         }
-
-        return response([
-            'code' => '200',
-            'message' => ' کد تخفیف اعمال شد و مقدار ' . $amountOfDiscount . ' تومان از خرید شما کم شده است ',
+        return [
             'amountOfDiscount' => $amountOfDiscount,
             'amountOfPayment' => $amountOfPayment
-        ]);
-
-////                'amountOfDiscount' => $amountOfDiscount,
-////                'amountOfPayment' => $amountOfPayment,
-////                'discountCode' => $discount->code,
-////                'price' => $totalUnDiscountCost + $totalDiscountCost,
-////                'type' => $discount->type,
-////                'value' => $discount->value,
-////                'max_value' => $discount->maximum_value,
+        ];
     }
 }

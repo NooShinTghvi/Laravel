@@ -34,7 +34,7 @@ class CartController extends Controller
         return Cart::where('user_id', $userId)->where('is_pay', false)->exists();
     }
 
-    private function create($userId)
+    public function create($userId)
     {
         Cart::create([
             'user_id' => $userId,
