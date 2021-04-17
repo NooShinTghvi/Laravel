@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/error', function () {
     return response('Plz Login first', 401);
 })->name('login.Plz');
-Route::get('/t2', [AuthController::class, 't2'])->middleware('auth:user');
-Route::get('/t', [AuthController::class, 'user'])->middleware('auth:user');
 
 Route::get('main', [StartPageController::class, 'main']);
 Route::get('news/{newsId}', [StartPageController::class, 'oneNews']);
@@ -31,27 +29,28 @@ Route::get('cities/{provinceId}/{countyId}', [UserController::class, 'getCitiesB
 
 Route::prefix('cart')->middleware('auth:user')->name('cart.')->group(function () {
     Route::get('', [CartController::class, 'shoppingCartPreparation']);
-    Route::patch('/add/exam/{examId}', [CartController::class, 'addExamToCart']);
-    Route::patch('/delete/exam/{examId}', [CartController::class, 'deleteExamFromCart']);
+    Route::put('exam/{examId}', [CartController::class, 'addExamToCart']);
+    Route::delete('exam/{examId}', [CartController::class, 'deleteExamFromCart']);
 });
 
 Route::get('check/discount/code', [DiscountController::class, 'isValidCode'])->middleware('auth:user');
 
 Route::post('buy', [TransactionController::class, 'buy'])->middleware('auth:user');
-Route::get('verify/payment/{factorNumber}', [TransactionController::class, 'verifyInfo'])->middleware('auth:user');
+Route::get('payment-verify/{factorNumber}', [TransactionController::class, 'verifyInfo'])->middleware('auth:user')
+->name('verify');
 Route::get('transactions', [TransactionController::class, 'myTransaction'])->middleware('auth:user');
 
 Route::prefix('exam')->name('exam.')->group(function () {
     Route::get('', [ExamController::class, 'showAll'])->name('show');
     Route::get('{examId}', [ExamController::class, 'detailOne'])->name('detail.one');
-    Route::post('filter', [ExamController::class, 'filterExams'])->name('filter');
+    Route::get('filter', [ExamController::class, 'filterExams'])->name('filter');
     Route::get('mine', [ExamController::class, 'myExams'])->middleware('auth:user')->name('mine');
 });
 
 Route::get('phases/{examId}', [ExamController::class, 'allPhases']);
 
 Route::get('/entrance/{examId}/{phaseId}', [ExamController::class, 'entranceExam'])->middleware('auth:user');
-Route::get('/start/{examId}/{phaseId}', [ExamController::class, 'canUserStartTest'])->middleware('auth:user');
+Route::patch('/start/{examId}/{phaseId}', [ExamController::class, 'canUserStartTest'])->middleware('auth:user');
 
 Route::post('/submit/{phaseId}', [ExamController::class, 'handle'])->middleware('auth:user');
 Route::get('/answer/download/{phaseId}', [ExamController::class, 'downloadAnswer'])->middleware('auth:user');

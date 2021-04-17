@@ -90,7 +90,7 @@ class TransactionController extends Controller
             'description' => $request->filled('description') ? $request->input('description') : null,
         ]);
 
-        $res = $this->zpo->pay($amountOfPayment, url('/verify/payment/' . $factorNumber), null, null);
+        $res = $this->zpo->pay($amountOfPayment, route('verify', ['factorNumber' => $factorNumber]), null, null);
         return response($res);
     }
 
